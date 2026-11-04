@@ -1,0 +1,28 @@
+random_seed: 42
+
+paths:
+  data_raw: data/raw
+  data_processed: data/processed
+  splits: splits
+  cache: cache
+  results: results
+
+webis17:
+  instances: data/raw/instances.jsonl
+  truth: data/raw/truth.jsonl
+
+embedding_model: sentence-transformers/all-MiniLM-L6-v2
+
+logistic_regression:
+  class_weight: balanced
+  max_iter: 1000
+  solver: lbfgs
+
+randomized_search:
+  n_iter: 25
+  scoring: macro_f1
+  # one validation fold per split manifest; not k-fold CV
+  C:
+    distribution: loguniform
+    low: 0.01
+    high: 100.0

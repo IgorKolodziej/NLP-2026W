@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nlp-clickbait-2026w"
+version = "0.1.0"
+description = "Clickbait Without the Click — NLP course project (WUT 2026/27)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "pyyaml",
+    "scikit-learn",
+    "sentence-transformers",
+    "torch",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clickbait"]
+
+[tool.uv]
+package = true
