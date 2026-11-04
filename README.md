@@ -74,4 +74,15 @@ Verify the project scaffold:
 uv run python scripts/smoke_config.py
 ```
 
-Further reproduction steps (data, experiments) will be added in [`PLAN.md`](PLAN.md) Task 10.
+### Webis-Clickbait-17 (Task 2)
+
+Download `clickbait17-train-170630.zip` from [Zenodo 5530410](https://zenodo.org/records/5530410) into `data/raw/`, extract `instances.jsonl` and `truth.jsonl` (see [`docs/data.md`](docs/data.md)). Then:
+
+```bash
+uv run python scripts/build_dataset.py
+uv run python scripts/build_splits.py
+```
+
+Writes `data/processed/posts.parquet`, `data/processed/dataset_stats.json`, and manifests under `splits/`.
+
+Further reproduction steps (models, experiments) will be added in [`PLAN.md`](PLAN.md) Task 10.

@@ -8,8 +8,16 @@ paths:
   results: results
 
 webis17:
+  # from clickbait17-train-170630.zip → clickbait17-validation-170630/*.jsonl
   instances: data/raw/instances.jsonl
   truth: data/raw/truth.jsonl
+
+splits:
+  random_seeds: [42, 43, 44]
+  random_ratios:
+    train: 0.7
+    val: 0.15
+    test: 0.15
 
 embedding_model: sentence-transformers/all-MiniLM-L6-v2
 

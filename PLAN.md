@@ -17,7 +17,7 @@ Phased plan for **building and running** the project (not the same as course Pha
 Mark tasks when merged to the team branch. Agents: see [`AGENTS.md`](AGENTS.md) — update this list when a task is finished.
 
 - [x] **Task 1** — Scaffold + config (Hubert)
-- [ ] **Task 2** — Dataset + splits (Hubert · Adam support)
+- [x] **Task 2** — Dataset + splits (Hubert · Adam support)
 - [ ] **Task 3** — EDA notebook (Mateusz · Adam support)
 - [ ] **Task 4** — 12 cues + System A (Hubert · Adam support)
 - [ ] **Task 5** — MiniLM cache script (Igor · Mateusz support)
@@ -29,7 +29,27 @@ Mark tasks when merged to the team branch. Agents: see [`AGENTS.md`](AGENTS.md) 
 
 ---
 
-## Revised semester roles (vs. proposal)
+## Blocking necessary human input
+
+Hard prerequisites for agent or merge work on the **Blocks** task. Check when done; add rows if new blockers appear.
+
+| Done | Who | Blocks | Required action |
+|:----:|-----|--------|-----------------|
+| [ ] | **Adam** | Task 2 | Skim-review [`configs/experiment.yaml`](configs/experiment.yaml): `webis17.instances` / `webis17.truth` match your Zenodo unpack paths (`data/raw/instances.jsonl`, `data/raw/truth.jsonl` or adjust YAML). |
+| [x] | **Adam** | Task 2 | Download Webis-Clickbait-17 `clickbait17-train-170630.zip` from Zenodo → unzip under `data/raw/` (not committed; gitignored). *(Done locally for pipeline run; other clones still need the zip.)* |
+| [ ] | **Adam** | Task 2 | Review and **sign off** article-overlap / leakage policy in [`docs/data.md`](docs/data.md) before treating `splits/*.json` as frozen. |
+| [x] | **Hubert** | Task 2 | Run `build_dataset` / `build_splits` locally once Adam’s data is in place; commit manifests. |
+| [ ] | **Adam** | Task 3 | By ~20 Nov: add Webis-16 under `data/raw/webis16/` **or** send Mateusz one sentence (“not available because …”) for the EDA notebook. |
+| [ ] | **Igor** | Tasks 6–7 | Run `cache_embeddings.py` on GPU VM; share `cache/embeddings/` with team (rsync/shared storage); paste `time -v` stats for the report. |
+| [ ] | **Igor** | Task 7 | After cache is local: run B/C on `temporal_main` if not covered by `run_poc.py` alone. |
+| [ ] | **Mateusz** | Task 7 | Execute `run_poc.py`; provide slide table (split name, macro-F₁ A/B/C, C−B). |
+| [ ] | **Mateusz** | Task 8 | Run full experiment suite; archive one `results/runs/` folder for reproduction. |
+| [ ] | **Adam** | Task 10 | Fresh-clone README reproduction check (or document fix if it fails). |
+| [ ] | **Igor** | Task 10 | Confirm reproduced PoC numbers match pinned `results/poc_summary.json`. |
+
+**Currently on the critical path:** Adam’s YAML review + **sign-off** on article dedupe policy (`docs/data.md`) → Mateusz Task 3 EDA.
+
+---
 
 Use in the Phase 2 report if the team agrees (same workstreams; shifted **who commits** early pipeline code):
 

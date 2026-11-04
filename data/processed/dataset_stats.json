@@ -1,0 +1,18 @@
+{
+  "sources": {
+    "instances": "data/raw/instances.jsonl",
+    "truth": "data/raw/truth.jsonl"
+  },
+  "output": "data/processed/posts.parquet",
+  "cleaning": {
+    "raw_joined": 19538,
+    "empty_teasers": 54,
+    "after_empty_drop": 19484,
+    "teaser_duplicates_removed": 411,
+    "after_teaser_dedupe": 19073,
+    "article_duplicates_removed": 391,
+    "final_rows": 18682,
+    "positive_count": 4448,
+    "positive_rate": 0.2380901402419441
+  }
+}
