@@ -189,3 +189,16 @@ def build_all_manifests(df: pd.DataFrame, cfg: dict[str, Any]) -> list[SplitMani
             )
         )
     return manifests
+
+
+def load_manifest(path: Path) -> SplitManifest:
+    with path.open(encoding="utf-8") as f:
+        data = json.load(f)
+    return SplitManifest(
+        name=data["name"],
+        split_type=data["type"],
+        train_ids=list(data["train_ids"]),
+        val_ids=list(data["val_ids"]),
+        test_ids=list(data["test_ids"]),
+        metadata=dict(data["metadata"]),
+    )

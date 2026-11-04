@@ -74,15 +74,92 @@ Verify the project scaffold:
 uv run python scripts/smoke_config.py
 ```
 
-### Webis-Clickbait-17 (Task 2)
+## Data: Webis-Clickbait-17
 
-Download `clickbait17-train-170630.zip` from [Zenodo 5530410](https://zenodo.org/records/5530410) into `data/raw/`, extract `instances.jsonl` and `truth.jsonl` (see [`docs/data.md`](docs/data.md)). Then:
+Primary corpus for all experiments. **`data/raw/` is gitignored** — each clone must download the archive locally. Processed tables and split manifests in the repo were built from this release; re-run the scripts below to reproduce them bit-for-bit.
+
+### 1. Download
+
+- **Record:** [Zenodo 5530410 — Webis-Clickbait-17](https://zenodo.org/records/5530410) (CC BY 4.0)
+- **File:** `clickbait17-train-170630.zip` (~937 MB) — labelled training/validation JSONL, not the multi-part archive dumps
+
+Direct API link (same file):
+
+```text
+https://zenodo.org/api/records/5530410/files/clickbait17-train-170630.zip/content
+```
+
+**macOS / Linux** (from repository root):
+
+```bash
+mkdir -p data/raw
+curl -L -o data/raw/clickbait17-train-170630.zip \
+  "https://zenodo.org/api/records/5530410/files/clickbait17-train-170630.zip/content"
+```
+
+**Windows (PowerShell)** from repository root:
+
+```powershell
+New-Item -ItemType Directory -Force -Path data/raw
+curl.exe -L -o data/raw/clickbait17-train-170630.zip `
+  "https://zenodo.org/api/records/5530410/files/clickbait17-train-170630.zip/content"
+```
+
+### 2. Extract JSONL into `data/raw/`
+
+The zip contains a folder `clickbait17-validation-170630/` with large `media/` assets. For this project you only need the two JSONL files at **`data/raw/`** (paths in [`configs/experiment.yaml`](configs/experiment.yaml)):
+
+| Required path | Role |
+|---------------|------|
+| `data/raw/instances.jsonl` | `postText`, `postTimestamp`, `targetTitle`, … |
+| `data/raw/truth.jsonl` | `truthClass`, `truthJudgments`, … (join on `id`) |
+
+**macOS / Linux** — extract without pulling all media into the tree:
+
+```bash
+unzip -j -o data/raw/clickbait17-train-170630.zip \
+  "clickbait17-validation-170630/instances.jsonl" \
+  "clickbait17-validation-170630/truth.jsonl" \
+  -d data/raw
+```
+
+**Windows** — unzip the archive with Explorer or `tar -xf`, then copy `clickbait17-validation-170630\instances.jsonl` and `truth.jsonl` into `data\raw\`, or use the same `unzip` commands in Git Bash.
+
+Check:
+
+```bash
+test -f data/raw/instances.jsonl && test -f data/raw/truth.jsonl && echo "ok"
+```
+
+### 3. Build processed dataset and splits
+
+From the repository root (after `uv sync`):
 
 ```bash
 uv run python scripts/build_dataset.py
 uv run python scripts/build_splits.py
 ```
 
-Writes `data/processed/posts.parquet`, `data/processed/dataset_stats.json`, and manifests under `splits/`.
+**Outputs (used by later tasks):**
 
-Further reproduction steps (models, experiments) will be added in [`PLAN.md`](PLAN.md) Task 10.
+| Path | Contents |
+|------|----------|
+| `data/processed/posts.parquet` | Cleaned rows (`post_id`, text, label, timestamps, …) |
+| `data/processed/dataset_stats.json` | Row counts after cleaning |
+| `splits/*.json` | Train/val/test ID lists (`temporal_main`, random grouped seeds, …) |
+
+Cleaning and leakage rules: [`docs/data.md`](docs/data.md).
+
+### Train system A (Task 4)
+
+After the dataset and splits exist:
+
+```bash
+uv run python scripts/train_system_a.py --split temporal_main
+```
+
+Writes `results/system_a_<split>.json` (macro-F₁, AP, Brier, confusion matrix; split name in file). Cue definitions: [`docs/cues.md`](docs/cues.md).
+
+Optional secondary corpus (Task 10 / EDA): Webis-Clickbait-16 under `data/raw/webis16/` when available.
+
+Further model and experiment reproduction steps will be added in [`PLAN.md`](PLAN.md) Task 10.

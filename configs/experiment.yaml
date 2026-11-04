@@ -34,3 +34,7 @@ randomized_search:
     distribution: loguniform
     low: 0.01
     high: 100.0
+
+training:
+  # select C on validation; final LR fit on train only; test metrics never used for tuning
+  refit_on: train
