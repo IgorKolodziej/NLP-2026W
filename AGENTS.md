@@ -102,6 +102,7 @@ Results with cross-method interpretation; **measurement procedures** for every n
 5. **Submissions:** correct template; folder naming rule; one free ≤48 h late delay per semester then −5 pts per further delay.
 6. Prefer **minimal, focused diffs**; match existing conventions as the codebase grows.
 7. When executing a task from [`PLAN.md`](PLAN.md), mark the corresponding **Progress** item complete in that file before closing the session (same PR/commit as the task if practical).
+8. **Git commits:** use plain commit messages only — **never** add `Co-authored-by`, `Made-with: Cursor`, or other agent/cursor attribution trailers to commits.
 
 ## Pre-submit self-check (team)
 
