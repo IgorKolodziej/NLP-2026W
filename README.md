@@ -189,6 +189,12 @@ encoding, verification, and writing. Separate phase timings are in `results/embe
 These measurements cover cache construction, not LR training or deployment latency. CUDA runs
 also record PyTorch peak allocated/reserved device bytes separately from host RSS.
 
+The [recorded CPU run](results/embedding_cache.json) covers all **18,682 processed Webis-17 posts**
+on an AMD Ryzen 7 5700U with 8 PyTorch threads and batch size 32. It took **55.34 s total wall time**,
+including **49.23 s encoding**, with **1,347,620 KiB peak host RSS** ([GNU time log](results/embedding_cache_time.txt)).
+These are single-run measurements with the model already downloaded. All six manifests are covered;
+the longest teaser uses 104 tokens including special tokens, so none reaches the 256-token limit.
+
 The model revision and encoding settings are pinned in [`configs/experiment.yaml`](configs/experiment.yaml).
 The first run downloads the model into `cache/models/`. Encoding uses frozen float32 weights,
 the existing `post_text` without additional cleaning, a 256-token maximum, and unit-normalized

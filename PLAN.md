@@ -248,13 +248,13 @@ uv run python scripts/train_system_a.py --split temporal_main
 **Incremental progress:**
 
 - [x] ID-indexed cache, round-trip tests, and a seeded 64-post CPU pilot on `temporal_main` training data. Five independently re-encoded posts agree within float32 tolerance.
-- [ ] Full-dataset encoding, model/input compatibility checks, and runtime/memory measurement.
+- [x] Full-dataset encoding, model/input compatibility checks, and runtime/memory measurement. All 18,682 processed posts and six manifests pass validation; [run summary](results/embedding_cache.json) and [GNU time log](results/embedding_cache_time.txt) record the CPU run.
 - [ ] Share the complete cache and independently verify loading on a teammate's machine.
 
 **Human — Igor (CPU or GPU machine):**
 
 1. Sync repo + `data/processed/` to the execution machine; keep the cache gitignored and share it through team storage or rsync.
-2. After full-dataset support is complete, run the cache script under `/usr/bin/time -v` on the chosen device. The current CLI runs only the pilot documented in README.
+2. Run the full cache under `/usr/bin/time -v` on the chosen device; use the [README commands](README.md#frozen-minilm-cache-task-5) for generation, measurement, and validation. `--sample-size` selects a separate training-only pilot.
 3. Verify five random IDs → embedding shape `(384,)`.
 4. **Gather for report (criterion 2.7):** paste **measured** wall time and max RSS from `time -v` — not estimates.
 
