@@ -162,31 +162,64 @@ Writes `results/system_a_<split>.json` (macro-F₁, AP, Brier, confusion matrix;
 
 Optional secondary corpus (Task 10 / EDA): Webis-Clickbait-16 under `data/raw/webis16/` when available.
 
-### MiniLM cache pilot (Task 5)
+### Frozen MiniLM cache (Task 5)
 
-The first cache increment encodes a seeded sample of **64 `temporal_main` training posts** on CPU:
+Install the locked environment and run a **64-post `temporal_main` training pilot** to download
+the pinned model before measuring the full run:
 
 ```bash
 uv sync --locked
 uv run --locked python scripts/cache_embeddings.py --device cpu --sample-size 64
 ```
 
+Without `--sample-size`, the script encodes **all processed posts**, including validation/test
+texts, using the fixed pretrained encoder. No labels or dataset-fitted statistics enter encoding.
+On Linux, measure the complete command with GNU time:
+
+```bash
+mkdir -p results
+/usr/bin/time -v -o results/embedding_cache_time.txt \
+  uv run --locked python scripts/cache_embeddings.py --device cpu --local-files-only
+uv run --locked python scripts/cache_embeddings.py --check
+```
+
+`--local-files-only` excludes model downloads from this run. GNU time records total process
+wall time and peak **host RSS in KiB**, including imports, model loading, token-length auditing,
+encoding, verification, and writing. Separate phase timings are in `results/embedding_cache.json`.
+These measurements cover cache construction, not LR training or deployment latency. CUDA runs
+also record PyTorch peak allocated/reserved device bytes separately from host RSS.
+
 The model revision and encoding settings are pinned in [`configs/experiment.yaml`](configs/experiment.yaml).
 The first run downloads the model into `cache/models/`. Encoding uses frozen float32 weights,
 the existing `post_text` without additional cleaning, a 256-token maximum, and unit-normalized
 384-dimensional sentence embeddings. Labels and article fields are not passed to the encoder.
 
-Outputs under **`cache/embeddings/pilot/`** (gitignored):
+Full-cache outputs under **`cache/embeddings/`** (gitignored):
 
 - `embeddings.npz`: aligned string `post_ids`, `text_sha256`, and float32 `embeddings`.
-- `meta.json`: model revision, sample seed/scope, encoding settings, installed versions,
-  source/lockfile/archive checksums, and model-loading and encoding times.
+- `meta.json`: model revision, encoding settings, hardware, installed versions, code revision,
+  source/config/lockfile/archive checksums, split coverage, token-length audit, and verification results.
 
-The script verifies exact save/load equality. `clickbait.embeddings.load_embeddings(directory, posts)`
-accepts a table with `post_id` and `post_text`, returns vectors in that table's order, and rejects
-missing IDs, changed text, or a damaged archive. Re-running replaces the pilot; it does not produce
-the full dataset cache. Model-loading time can include the initial download and is separate from
-encoding time. Full-cache coverage and runtime/memory measurement remain part of Task 5.
+The script verifies finite float32 values, dimensions, unit norms, exact save/load equality, and
+five seeded direct re-encodings with batch size 1 (`atol=1e-6`, `rtol=1e-5`). A small summary is
+written to `results/embedding_cache.json`; retain it with the GNU time log for the report.
+Pilot runs stay in `cache/embeddings/pilot/` and never overwrite the full cache.
+
+`clickbait.embeddings.load_embeddings(directory, posts, cfg)` takes a table with `post_id` and
+`post_text`, returns vectors in that table's order, and checks the model/revision, sequence limit,
+normalization setting, dimensions, dtype, IDs, text fingerprints, and archive integrity. B and C
+must load the same archive. Package versions and batch size are recorded as provenance; loading
+saved arrays does not require matching the encoding machine or its inference batch size.
+
+`--check` validates the existing artifact without loading MiniLM or downloading anything. It
+checks every current split manifest for covered IDs and nonempty, disjoint partitions. This is
+an ID-coverage check, not a new article-leakage audit. Split changes alone allow reuse of unchanged
+ID–text vectors; saved manifest hashes describe the original run. Check a pilot with
+`--check --sample-size 64`.
+
+To transfer the full cache, copy `embeddings.npz` and `meta.json` together into the recipient's
+`cache/embeddings/`, then run the documented `--check` command against the same processed dataset
+and configuration. Large artifacts remain outside git.
 
 Run the cache tests without downloading a model:
 
