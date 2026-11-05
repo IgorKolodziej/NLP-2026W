@@ -20,7 +20,7 @@ Mark tasks when merged to the team branch. Agents: see [`AGENTS.md`](AGENTS.md) 
 - [x] **Task 2** — Dataset + splits (Hubert · Adam support)
 - [ ] **Task 3** — EDA notebook (Mateusz · Adam support)
 - [x] **Task 4** — 12 cues + System A (Hubert · Adam support)
-- [ ] **Task 5** — MiniLM cache script (Igor · Mateusz support)
+- [x] **Task 5** — MiniLM cache script (Igor · Mateusz support)
 - [ ] **Task 6** — Systems B and C (Igor · Mateusz support)
 - [ ] **Task 7** — PoC runner (Mateusz · Igor support)
 - [ ] **Task 8** — Full experiment orchestrator (Mateusz · Hubert support)
@@ -40,7 +40,7 @@ Hard prerequisites for agent or merge work on the **Blocks** task. Check when do
 | [ ] | **Adam** | Task 2 | Review and **sign off** article-overlap / leakage policy in [`docs/data.md`](docs/data.md) before treating `splits/*.json` as frozen. |
 | [x] | **Hubert** | Task 2 | Run `build_dataset` / `build_splits` locally once Adam’s data is in place; commit manifests. |
 | [ ] | **Adam** | Task 3 | By ~20 Nov: add Webis-16 under `data/raw/webis16/` **or** send Mateusz one sentence (“not available because …”) for the EDA notebook. |
-| [ ] | **Igor** | Tasks 6–7 | Run the full embedding cache on CPU or GPU; share `cache/embeddings/` with team (rsync/shared storage); paste `time -v` stats for the report. |
+| [x] | **Igor** | Tasks 6–7 | Full CPU cache shared; Mateusz confirmed the same `--check` result. Measured runtime and memory are saved in [`results/embedding_cache_time.txt`](results/embedding_cache_time.txt). |
 | [ ] | **Igor** | Task 7 | After cache is local: run B/C on `temporal_main` if not covered by `run_poc.py` alone. |
 | [ ] | **Mateusz** | Task 7 | Execute `run_poc.py`; provide slide table (split name, macro-F₁ A/B/C, C−B). |
 | [ ] | **Mateusz** | Task 8 | Run full experiment suite; archive one `results/runs/` folder for reproduction. |
@@ -249,7 +249,7 @@ uv run python scripts/train_system_a.py --split temporal_main
 
 - [x] ID-indexed cache, round-trip tests, and a seeded 64-post CPU pilot on `temporal_main` training data. Five independently re-encoded posts agree within float32 tolerance.
 - [x] Full-dataset encoding, model/input compatibility checks, and runtime/memory measurement. All 18,682 processed posts and six manifests pass validation; [run summary](results/embedding_cache.json) and [GNU time log](results/embedding_cache_time.txt) record the CPU run.
-- [ ] Share the complete cache and independently verify loading on a teammate's machine.
+- [x] Complete cache shared with Mateusz, who confirmed the same successful result from `uv run --locked python scripts/cache_embeddings.py --check`: 18,682 embeddings verified and six split manifests covered.
 
 **Human — Igor (CPU or GPU machine):**
 
