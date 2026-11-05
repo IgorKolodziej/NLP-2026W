@@ -275,6 +275,13 @@ uv run python scripts/train_system_a.py --split temporal_main
 - Same randomized **C** search on validation macro-F₁ as A.
 - CLI: `scripts/train_neural.py --system B|C` (or separate scripts).
 
+**Incremental progress:**
+
+- [x] ID-aligned float64 B/C feature construction and train-only cue scaling. Unit tests and `scripts/check_neural_features.py --split temporal_main` verify the training/validation matrices, embedding equality, and cue order.
+- [ ] Shared tuning history and convergence handling; B training/validation runner.
+- [ ] C training through the shared protocol; fitted-model and prediction exports.
+- [ ] Frozen `temporal_main` B/C evaluation, measured runtime/memory, and README reproduction commands.
+
 **Human — Igor:**
 
 ```bash

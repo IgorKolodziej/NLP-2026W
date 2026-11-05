@@ -29,6 +29,9 @@ Fixed **12** numeric features per teaser (`postText`). Names match `src/clickbai
 | 11 | `forward_reference_hits` | Word and phrase matches in [`resources/forward_reference.txt`](../resources/forward_reference.txt) |
 | 12 | `all_caps_word_count` | Words (letters only) with length > 1 that are all uppercase |
 
-Lexicon lines are lowercase; matching is case-insensitive. Multi-word lines are phrase matches; single-token lines use word boundaries.
+Lexicon lines are lowercase; matching is case-insensitive. Single-token lines use word boundaries.
+Multi-word lines match literal substrings without word-boundary checks, and distinct matching
+phrases are counted separately even when they overlap. For example, `must seem` matches `must see`,
+while `you won't believe` contributes two forward-reference hits (`you won't` and `won't believe`).
 
 **Ablation groups** (Task 9): `length_structure`, `punctuation_caps`, `pronoun_forward_lexicon` — see `CUE_GROUPS` in `cues.py`.

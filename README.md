@@ -227,10 +227,34 @@ To transfer the full cache, copy `embeddings.npz` and `meta.json` together into 
 `cache/embeddings/`, then run the documented `--check` command against the same processed dataset
 and configuration. Large artifacts remain outside git.
 
-Run the cache tests without downloading a model:
+Run the tests without downloading a model:
 
 ```bash
 uv run --locked python -m unittest discover -s tests -v
 ```
+
+### B/C feature construction (Task 6)
+
+`clickbait.models.neural.load_neural_inputs(posts, cache_dir, cfg, system)` preserves the
+requested post order and loads cached embeddings as contiguous float64 arrays. B has 384
+embedding columns. C appends twelve **unscaled** cues in `CUE_NAMES` order, giving 396 columns.
+
+For C, `build_cue_scaler()` creates a scikit-learn `ColumnTransformer` that passes through the
+embedding columns and applies `StandardScaler` only to the cue columns. Fit it on training
+inputs with `fit_transform`, then use that same object's `transform` on validation/test inputs.
+Constant training cues are retained. The embedding values are identical in B and C.
+Cue matching semantics are documented in [`docs/cues.md`](docs/cues.md).
+
+Check feature construction on the real training/validation partitions without fitting LR or
+reading test labels:
+
+```bash
+uv run --locked python scripts/check_neural_features.py --split temporal_main
+```
+
+Verified shapes for `temporal_main`: training B `(11184, 384)` and C `(11184, 396)`;
+validation B `(3918, 384)` and C `(3918, 396)`. Checks cover finite float64 values,
+embedding equality, and standardized training cues. B/C training and tuning remain the
+next increment of Task 6.
 
 Further model and experiment reproduction steps will be added in [`PLAN.md`](PLAN.md) Task 10.
