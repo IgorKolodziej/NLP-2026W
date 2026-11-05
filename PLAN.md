@@ -40,7 +40,7 @@ Hard prerequisites for agent or merge work on the **Blocks** task. Check when do
 | [ ] | **Adam** | Task 2 | Review and **sign off** article-overlap / leakage policy in [`docs/data.md`](docs/data.md) before treating `splits/*.json` as frozen. |
 | [x] | **Hubert** | Task 2 | Run `build_dataset` / `build_splits` locally once Adam’s data is in place; commit manifests. |
 | [ ] | **Adam** | Task 3 | By ~20 Nov: add Webis-16 under `data/raw/webis16/` **or** send Mateusz one sentence (“not available because …”) for the EDA notebook. |
-| [ ] | **Igor** | Tasks 6–7 | Run `cache_embeddings.py` on GPU VM; share `cache/embeddings/` with team (rsync/shared storage); paste `time -v` stats for the report. |
+| [ ] | **Igor** | Tasks 6–7 | Run the full embedding cache on CPU or GPU; share `cache/embeddings/` with team (rsync/shared storage); paste `time -v` stats for the report. |
 | [ ] | **Igor** | Task 7 | After cache is local: run B/C on `temporal_main` if not covered by `run_poc.py` alone. |
 | [ ] | **Mateusz** | Task 7 | Execute `run_poc.py`; provide slide table (split name, macro-F₁ A/B/C, C−B). |
 | [ ] | **Mateusz** | Task 8 | Run full experiment suite; archive one `results/runs/` folder for reproduction. |
@@ -245,15 +245,16 @@ uv run python scripts/train_system_a.py --split temporal_main
 
 - `scripts/cache_embeddings.py`: `all-MiniLM-L6-v2`, batch encode, save by `post_id` (npz/memmap + id index); `cache/embeddings/meta.json` (package versions from `uv.lock`, batch size, device).
 
-**Human — Igor (GPU VM):**
+**Incremental progress:**
 
-1. Sync repo + `data/processed/` to VM; do not commit multi-GB cache — team storage or rsync.
-2. Run:
+- [x] ID-indexed cache, round-trip tests, and a seeded 64-post CPU pilot on `temporal_main` training data. Five independently re-encoded posts agree within float32 tolerance.
+- [ ] Full-dataset encoding, model/input compatibility checks, and runtime/memory measurement.
+- [ ] Share the complete cache and independently verify loading on a teammate's machine.
 
-```bash
-/usr/bin/time -v uv run python scripts/cache_embeddings.py --device cuda
-```
+**Human — Igor (CPU or GPU machine):**
 
+1. Sync repo + `data/processed/` to the execution machine; keep the cache gitignored and share it through team storage or rsync.
+2. After full-dataset support is complete, run the cache script under `/usr/bin/time -v` on the chosen device. The current CLI runs only the pilot documented in README.
 3. Verify five random IDs → embedding shape `(384,)`.
 4. **Gather for report (criterion 2.7):** paste **measured** wall time and max RSS from `time -v` — not estimates.
 

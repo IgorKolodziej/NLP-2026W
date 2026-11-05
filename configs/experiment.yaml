@@ -20,6 +20,11 @@ splits:
     test: 0.15
 
 embedding_model: sentence-transformers/all-MiniLM-L6-v2
+embeddings:
+  revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+  batch_size: 32
+  max_seq_length: 256
+  normalize_embeddings: true
 
 logistic_regression:
   class_weight: balanced

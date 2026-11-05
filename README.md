@@ -162,4 +162,36 @@ Writes `results/system_a_<split>.json` (macro-F₁, AP, Brier, confusion matrix;
 
 Optional secondary corpus (Task 10 / EDA): Webis-Clickbait-16 under `data/raw/webis16/` when available.
 
+### MiniLM cache pilot (Task 5)
+
+The first cache increment encodes a seeded sample of **64 `temporal_main` training posts** on CPU:
+
+```bash
+uv sync --locked
+uv run --locked python scripts/cache_embeddings.py --device cpu --sample-size 64
+```
+
+The model revision and encoding settings are pinned in [`configs/experiment.yaml`](configs/experiment.yaml).
+The first run downloads the model into `cache/models/`. Encoding uses frozen float32 weights,
+the existing `post_text` without additional cleaning, a 256-token maximum, and unit-normalized
+384-dimensional sentence embeddings. Labels and article fields are not passed to the encoder.
+
+Outputs under **`cache/embeddings/pilot/`** (gitignored):
+
+- `embeddings.npz`: aligned string `post_ids`, `text_sha256`, and float32 `embeddings`.
+- `meta.json`: model revision, sample seed/scope, encoding settings, installed versions,
+  source/lockfile/archive checksums, and model-loading and encoding times.
+
+The script verifies exact save/load equality. `clickbait.embeddings.load_embeddings(directory, posts)`
+accepts a table with `post_id` and `post_text`, returns vectors in that table's order, and rejects
+missing IDs, changed text, or a damaged archive. Re-running replaces the pilot; it does not produce
+the full dataset cache. Model-loading time can include the initial download and is separate from
+encoding time. Full-cache coverage and runtime/memory measurement remain part of Task 5.
+
+Run the cache tests without downloading a model:
+
+```bash
+uv run --locked python -m unittest discover -s tests -v
+```
+
 Further model and experiment reproduction steps will be added in [`PLAN.md`](PLAN.md) Task 10.
