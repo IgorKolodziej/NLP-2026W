@@ -293,6 +293,17 @@ Measure the complete validation run, including loading and artifact export, with
   uv run --locked python scripts/train_neural.py --system B --split temporal_main
 ```
 
+Recorded CPU run on `temporal_main/val` (11,184 training and 3,918 validation posts):
+macro-F₁ **0.716718**, selected `C=19.545485`. All 25 candidates converged in 6–57 iterations;
+the final refit took 41 iterations. Reloading the classifier reproduces the exported
+predictions and probabilities exactly. The [run summary](results/system_b_temporal_main_validation.json)
+contains the full candidate history and secondary metrics.
+
+The [GNU time log](results/system_b_temporal_main_validation_time.txt) records **15.88 s**
+wall time and **357,856 KiB** peak RSS (349.5 MiB) on an AMD Ryzen 7 5700U with 16 logical CPUs.
+This includes the full search, refit and export using the existing cache; embedding
+generation is measured separately in Task 5.
+
 These are model-selection results on March validation. C training and the frozen April
 test comparison remain later steps of Task 6; the runner currently accepts only `--system B`.
 
