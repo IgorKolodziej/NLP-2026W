@@ -254,7 +254,46 @@ uv run --locked python scripts/check_neural_features.py --split temporal_main
 
 Verified shapes for `temporal_main`: training B `(11184, 384)` and C `(11184, 396)`;
 validation B `(3918, 384)` and C `(3918, 396)`. Checks cover finite float64 values,
-embedding equality, and standardized training cues. B/C training and tuning remain the
-next increment of Task 6.
+embedding equality, and standardized training cues.
+
+### B training and validation (Task 6)
+
+With the full embedding cache available, run B on CPU:
+
+```bash
+uv run --locked python scripts/train_neural.py --system B --split temporal_main
+```
+
+The runner uses the manifest's training and validation rows only: December–February for
+fitting and March for selecting the LR regularization strength. It draws the same 25
+log-uniform `C` values in `[0.01, 100]` as A, using seed 42, and selects the highest validation
+macro-F₁. Exact ties keep the first sampled candidate. The selected classifier is refitted
+on training data only, with `class_weight='balanced'` and the default 0.5 decision threshold.
+
+Outputs:
+
+- `results/system_b_temporal_main_validation.json`: validation metrics, all candidate scores,
+  convergence status, iteration counts, fit times, configuration, versions and input hashes.
+- `results/runs/b_temporal_main_validation/model.pkl`: fitted LR classifier, taking the 384
+  cached embedding columns as float64. Reload with `pickle.load` in the locked environment.
+- `results/runs/b_temporal_main_validation/validation_predictions.parquet`: manifest-ordered
+  `post_id`, `partition`, `y_true`, `y_pred` and `p_clickbait` columns.
+
+Model and prediction files are gitignored. Each invocation replaces these split-specific
+outputs. A nonconverged candidate aborts the search and writes its diagnostic history to
+`results/runs/b_temporal_main_validation/tuning_failure.json`; no partial winner is selected
+or new success artifacts written. Resolve the warning and rerun the complete search. Any
+increase of `logistic_regression.max_iter` belongs in the shared configuration for A/B/C.
+The final refit also fails on a convergence warning.
+
+Measure the complete validation run, including loading and artifact export, with:
+
+```bash
+/usr/bin/time -v -o results/system_b_temporal_main_validation_time.txt \
+  uv run --locked python scripts/train_neural.py --system B --split temporal_main
+```
+
+These are model-selection results on March validation. C training and the frozen April
+test comparison remain later steps of Task 6; the runner currently accepts only `--system B`.
 
 Further model and experiment reproduction steps will be added in [`PLAN.md`](PLAN.md) Task 10.
