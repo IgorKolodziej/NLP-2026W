@@ -323,7 +323,47 @@ its exported predictions and probabilities exactly. C's saved scaler matches the
 cue statistics, and the B/C input hashes, validation IDs and tuning settings agree.
 The run summaries contain full candidate histories and secondary metrics.
 
-These are model-selection results on March validation. The frozen April test comparison
-remains the next step of Task 6.
+These are model-selection results on March validation.
+
+### Frozen April B/C comparison (Task 6)
+
+The [frozen protocol](results/frozen/temporal_main/protocol.json) fixes the existing
+`temporal_main` manifest, input hashes, cue definitions, package versions and selected
+regularization strengths. The two fitted models are committed alongside it (about 10 KB
+in total), copied unchanged from the verified validation runs. Later training runs write
+to separate paths and do not replace these snapshots.
+
+Both classifiers were fitted on December–February only, with `C` selected on March. The
+test evaluator loads the frozen models, uses their default 0.5 decision rule and original
+probabilities, and performs no fitting, tuning or calibration. It checks model, dataset,
+manifest, embedding, feature-code and lexicon hashes plus package versions before scoring.
+Use the shared Task 5 cache matching the archive hash in the protocol and the recorded
+environment (Python 3.14.10; dependencies pinned in `uv.lock`).
+
+After the setup and cache steps above, reproduce the comparison on CPU with:
+
+```bash
+/usr/bin/time -v -o results/bc_temporal_main_test_time.txt \
+  uv run --locked python scripts/evaluate_neural.py
+```
+
+Outputs:
+
+- `results/bc_temporal_main_test.json`: B/C test metrics, the paired macro-F₁ difference
+  `C − B`, prediction timings, protocol/prediction hashes and execution provenance.
+- `results/bc_temporal_main_test_predictions.parquet`: one row per test post in manifest
+  order, with `post_id`, `split`, `partition`, `y_true`, `y_pred_B`, `p_clickbait_B`,
+  `y_pred_C` and `p_clickbait_C`. Class 1 is clickbait; confusion matrices use `[0, 1]`
+  for both gold-label rows and prediction columns.
+- `results/bc_temporal_main_test_time.txt`: GNU time measurement of the combined evaluator,
+  including startup, input verification, feature loading, scoring and artifact export.
+  Training and embedding generation are measured separately above.
+
+The freeze audit found zero cross-partition overlap in IDs, normalized teasers and
+normalized title groups, with the expected calendar months. Article titles remain a
+proxy for article identity; Adam's leakage-policy review remains pending in `PLAN.md`.
+April labels were excluded from B/C fitting and selection; A's April metrics were already
+available before this freeze. The B/C comparison is a point estimate; paired bootstrap,
+additional splits, ablations and error analysis belong to Tasks 8–9.
 
 Further model and experiment reproduction steps will be added in [`PLAN.md`](PLAN.md) Task 10.
