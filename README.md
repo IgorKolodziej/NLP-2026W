@@ -343,7 +343,8 @@ environment (Python 3.14.10; dependencies pinned in `uv.lock`).
 After the setup and cache steps above, reproduce the comparison on CPU with:
 
 ```bash
-/usr/bin/time -v -o results/bc_temporal_main_test_time.txt \
+uv sync --locked
+UV_NO_SYNC=1 /usr/bin/time -v -o results/bc_temporal_main_test_time.txt \
   uv run --locked python scripts/evaluate_neural.py
 ```
 
@@ -358,6 +359,25 @@ Outputs:
 - `results/bc_temporal_main_test_time.txt`: GNU time measurement of the combined evaluator,
   including startup, input verification, feature loading, scoring and artifact export.
   Training and embedding generation are measured separately above.
+
+Recorded results on 3,580 April posts (830 clickbait):
+
+| System | Split/partition | Macro-F₁ | Average precision | Brier score |
+|---|---|---:|---:|---:|
+| B | `temporal_main/test` | 0.710541 | 0.651259 | 0.160020 |
+| C | `temporal_main/test` | 0.737422 | 0.688655 | 0.148493 |
+
+The paired `temporal_main/test` macro-F₁ difference is **C−B = +0.026881**.
+The [summary](results/bc_temporal_main_test.json) contains per-class metrics and confusion
+matrices; the [paired predictions](results/bc_temporal_main_test_predictions.parquet) are
+committed for subsequent analysis. Independent calculations using the frozen LR coefficients
+and scaler statistics reproduce every prediction and probability exactly; all metrics were
+recomputed from these rows, and the frozen model and input hashes remain unchanged.
+
+The [GNU time log](results/bc_temporal_main_test_time.txt) records **1.80 s** wall time and
+**309,860 KiB** peak RSS (302.6 MiB) for the combined evaluator on an AMD Ryzen 7 5700U
+with 16 logical CPUs. This was a single run with installed locked dependencies
+(`UV_NO_SYNC=1`) and a temporary uv cache; dependency installation is outside the measurement.
 
 The freeze audit found zero cross-partition overlap in IDs, normalized teasers and
 normalized title groups, with the expected calendar months. Article titles remain a

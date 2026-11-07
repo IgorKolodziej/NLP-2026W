@@ -21,7 +21,7 @@ Mark tasks when merged to the team branch. Agents: see [`AGENTS.md`](AGENTS.md) 
 - [ ] **Task 3** — EDA notebook (Mateusz · Adam support)
 - [x] **Task 4** — 12 cues + System A (Hubert · Adam support)
 - [x] **Task 5** — MiniLM cache script (Igor · Mateusz support)
-- [ ] **Task 6** — Systems B and C (Igor · Mateusz support)
+- [x] **Task 6** — Systems B and C (Igor · Mateusz support)
 - [ ] **Task 7** — PoC runner (Mateusz · Igor support)
 - [ ] **Task 8** — Full experiment orchestrator (Mateusz · Hubert support)
 - [ ] **Task 9** — Analysis scripts (Mateusz · Hubert support)
@@ -41,7 +41,7 @@ Hard prerequisites for agent or merge work on the **Blocks** task. Check when do
 | [x] | **Hubert** | Task 2 | Run `build_dataset` / `build_splits` locally once Adam’s data is in place; commit manifests. |
 | [ ] | **Adam** | Task 3 | By ~20 Nov: add Webis-16 under `data/raw/webis16/` **or** send Mateusz one sentence (“not available because …”) for the EDA notebook. |
 | [x] | **Igor** | Tasks 6–7 | Full CPU cache shared; Mateusz confirmed the same `--check` result. Measured runtime and memory are saved in [`results/embedding_cache_time.txt`](results/embedding_cache_time.txt). |
-| [ ] | **Igor** | Task 7 | After cache is local: run B/C on `temporal_main` if not covered by `run_poc.py` alone. |
+| [x] | **Igor** | Task 7 | B/C trained on `temporal_main`; frozen April metrics and paired predictions are in [`results/bc_temporal_main_test.json`](results/bc_temporal_main_test.json). |
 | [ ] | **Mateusz** | Task 7 | Execute `run_poc.py`; provide slide table (split name, macro-F₁ A/B/C, C−B). |
 | [ ] | **Mateusz** | Task 8 | Run full experiment suite; archive one `results/runs/` folder for reproduction. |
 | [ ] | **Adam** | Task 10 | Fresh-clone README reproduction check (or document fix if it fails). |
@@ -280,17 +280,20 @@ uv run python scripts/train_system_a.py --split temporal_main
 - [x] ID-aligned float64 B/C feature construction and train-only cue scaling. Unit tests and `scripts/check_neural_features.py --split temporal_main` verify the training/validation matrices, embedding equality, and cue order.
 - [x] Shared tuning history and convergence handling; B training/validation runner with model and prediction exports. All 25 candidates converged on CPU; `temporal_main/val` macro-F₁ is 0.716718. The [summary](results/system_b_temporal_main_validation.json) and [GNU time log](results/system_b_temporal_main_validation_time.txt) record the run; reloading the classifier reproduces the exported predictions and probabilities exactly.
 - [x] C training through the shared protocol; fitted cue scaler, classifier and prediction exports. All 25 candidates converged on CPU; `temporal_main/val` macro-F₁ is 0.745811. The [summary](results/system_c_temporal_main_validation.json) and [GNU time log](results/system_c_temporal_main_validation_time.txt) record the run. Saved scaler statistics match the training cues; the reloaded pipeline reproduces exported probabilities exactly. B/C input hashes, validation IDs and tuning settings agree.
-- [ ] Frozen `temporal_main` B/C evaluation, measured runtime/memory, and README reproduction commands.
+- [x] Frozen `temporal_main` B/C evaluation, measured runtime/memory, and README reproduction commands. The [protocol and models](results/frozen/temporal_main/protocol.json) were committed before April scoring. On 3,580 `temporal_main/test` posts, macro-F₁ is B = 0.710541 and C = 0.737422; paired C−B = +0.026881. The [summary](results/bc_temporal_main_test.json), [paired predictions](results/bc_temporal_main_test_predictions.parquet) and [GNU time log](results/bc_temporal_main_test_time.txt) record the result. Direct LR/scaling calculations reproduce every prediction and probability; all 35 tests pass.
 
 **Human — Igor:**
 
 ```bash
 uv run --locked python scripts/train_neural.py --system B --split temporal_main
 uv run --locked python scripts/train_neural.py --system C --split temporal_main
+uv run --locked python scripts/evaluate_neural.py
 ```
 
-These commands currently evaluate validation only. The frozen April B/C test comparison
-is the remaining increment above.
+Training commands evaluate validation only. The evaluator uses the committed frozen models
+and produces April test metrics and paired predictions without fitting. This completes
+Task 6 for the current manifest and title-based article proxy; Adam's policy review remains
+pending above. Next: Task 7 PoC integration, then Tasks 8–9 experiments and analysis.
 
 ---
 

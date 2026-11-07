@@ -1,0 +1,83 @@
+{
+  "split": "temporal_main",
+  "split_type": "temporal",
+  "evaluation_partition": "test",
+  "n_test": 3580,
+  "class_order": [
+    0,
+    1
+  ],
+  "systems": {
+    "B": {
+      "selected_C": 19.545485073586352,
+      "test": {
+        "macro_f1": 0.7105409972590335,
+        "average_precision": 0.6512591749341454,
+        "brier_score": 0.1600196786086712,
+        "precision_negative": 0.8999162479061976,
+        "recall_negative": 0.7814545454545454,
+        "f1_negative": 0.8365122615803815,
+        "precision_positive": 0.49580536912751677,
+        "recall_positive": 0.7120481927710843,
+        "f1_positive": 0.5845697329376854,
+        "confusion_matrix": [
+          [
+            2149,
+            601
+          ],
+          [
+            239,
+            591
+          ]
+        ]
+      }
+    },
+    "C": {
+      "selected_C": 0.5695262671673528,
+      "test": {
+        "macro_f1": 0.7374221719969761,
+        "average_precision": 0.6886550209908593,
+        "brier_score": 0.14849299168644117,
+        "precision_negative": 0.9130074565037283,
+        "recall_negative": 0.8014545454545454,
+        "f1_negative": 0.8536018590240124,
+        "precision_positive": 0.5317324185248714,
+        "recall_positive": 0.7469879518072289,
+        "f1_positive": 0.6212424849699398,
+        "confusion_matrix": [
+          [
+            2204,
+            546
+          ],
+          [
+            210,
+            620
+          ]
+        ]
+      }
+    }
+  },
+  "delta_macro_f1_C_minus_B": 0.026881174737942604,
+  "timing_seconds": {
+    "load_frozen_models_and_check_inputs": 0.09898611999960849,
+    "features_B_and_C": 0.2620307879997199,
+    "predict_B": 0.011297352999463328,
+    "predict_C": 0.011456634000751365
+  },
+  "freeze": "results/frozen/temporal_main/protocol.json",
+  "freeze_sha256": "905ae18085ae410342c2e31bc0da869eb9f3980f12933ab55f538681c28d8156",
+  "paired_predictions": "results/bc_temporal_main_test_predictions.parquet",
+  "paired_predictions_sha256": "49cc77a6ab92234cde3be069b4a752db803d0c6db231c9ffae7915d4b07d331e",
+  "created_at_utc": "2026-11-07T10:15:06.710371+00:00",
+  "command": "uv run --locked python scripts/evaluate_neural.py",
+  "git_revision": "b992b85cfa79588960a42b4eae0605c357782e92",
+  "code_dirty": false,
+  "python_version": "3.14.10",
+  "package_versions": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "pyarrow": "26.0.1"
+  }
+}
