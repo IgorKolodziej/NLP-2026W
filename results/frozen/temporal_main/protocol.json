@@ -1,0 +1,165 @@
+{
+  "split": "temporal_main",
+  "created_at_utc": "2026-11-07T10:04:01.328850+00:00",
+  "git_revision": "5d69f1c988795d94e586fad7273b43a1d12c4170",
+  "protocol": {
+    "train_months": [
+      "2016-12",
+      "2017-01",
+      "2017-02"
+    ],
+    "validation_months": [
+      "2017-03"
+    ],
+    "test_months": [
+      "2017-04"
+    ],
+    "primary_metric": "macro_f1",
+    "comparison": "C minus B on identical test post IDs",
+    "selection": "25 log-uniform C candidates on March validation macro-F1; first sampled candidate wins ties",
+    "refit": "December-February training rows only",
+    "classification": "estimator.predict; default probability threshold 0.5, ties assigned class 0",
+    "calibration": "none; use original predict_proba outputs",
+    "features": "B: 384 cached embeddings; C: the same embeddings plus 12 train-standardized cues"
+  },
+  "config": {
+    "random_seed": 42,
+    "paths": {
+      "data_raw": "data/raw",
+      "data_processed": "data/processed",
+      "splits": "splits",
+      "cache": "cache",
+      "results": "results"
+    },
+    "webis17": {
+      "instances": "data/raw/instances.jsonl",
+      "truth": "data/raw/truth.jsonl"
+    },
+    "splits": {
+      "random_seeds": [
+        42,
+        43,
+        44
+      ],
+      "random_ratios": {
+        "train": 0.7,
+        "val": 0.15,
+        "test": 0.15
+      }
+    },
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "embeddings": {
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "batch_size": 32,
+      "max_seq_length": 256,
+      "normalize_embeddings": true
+    },
+    "logistic_regression": {
+      "class_weight": "balanced",
+      "max_iter": 1000,
+      "solver": "lbfgs"
+    },
+    "randomized_search": {
+      "n_iter": 25,
+      "scoring": "macro_f1",
+      "C": {
+        "distribution": "loguniform",
+        "low": 0.01,
+        "high": 100.0
+      }
+    },
+    "training": {
+      "refit_on": "train"
+    }
+  },
+  "cue_names": [
+    "n_chars",
+    "n_words",
+    "avg_word_len",
+    "unique_word_ratio",
+    "n_exclamation",
+    "n_question",
+    "uppercase_char_ratio",
+    "n_digits",
+    "second_person_lexicon_hits",
+    "first_person_plural_lexicon_hits",
+    "forward_reference_hits",
+    "all_caps_word_count"
+  ],
+  "python_version": "3.14.10",
+  "package_versions": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "pyarrow": "26.0.1"
+  },
+  "input_sha256": {
+    "data/processed/posts.parquet": "a0558ae899be0e0bdb99396a8f3711c01b1ba97ad3b96e48057d6641ab7f1968",
+    "splits/temporal_main.json": "be8d0c11adcb790395c4512c191432ddaec238e760d22499a261b5058e8629da",
+    "cache/embeddings/embeddings.npz": "af3e532f4f7f9d69ca9a3da3fb96010ab5bdad80821b519c049697fbf6bb637d",
+    "configs/experiment.yaml": "41baaf976d93f056a9742e1efd2937774e44afe78f3a4f7214a917e936284e50",
+    "uv.lock": "2a6136b6d6eff33a21bd08330c1c5b24cec676338153f0173260b117010d604f",
+    "src/clickbait/models/neural.py": "ae91654c9be7f6966803cedb2d8e14fc0e4f2afd149b30fd9c963e2f04b6b671",
+    "src/clickbait/embeddings.py": "52492b072eee1223f47c8e4edc00324720c939a4e03729e445857e6f0dc8682d",
+    "src/clickbait/cues.py": "f26ce43f8250288c08ab67c1acbd05c9f29712d7e9ee1f38eb1c5a36c683f6f7",
+    "src/clickbait/metrics.py": "a1c44ee725454df1d04c0456d45a491e72d683a1010e921eb58ce47e4d2000a1",
+    "src/clickbait/splits.py": "d12f9d4ef09cb95ebb4a8170240e38f4f9bb5bac136717cfa9ce87f2fdb21051",
+    "resources/second_person.txt": "ae95ad37136fae7538fe58f7b9f943daf0ebe3b95b0f86c9cb89cb42bc043a05",
+    "resources/first_person_plural.txt": "1fe7c9c6469b43cd9a2a6bf9890119d9f7cea5badb093188839460978db07521",
+    "resources/forward_reference.txt": "47bdcb067feb7fbe0c7d9f6525e887c86031f089de3ec50223c548ae715ac0f7"
+  },
+  "models": {
+    "B": {
+      "file": "model_b.pkl",
+      "sha256": "66371014ac437f7aa7d842a258e3841887ca3a20cab7ee5ef4f60e66c98d7fd3",
+      "selected_C": 19.545485073586352,
+      "n_features": 384,
+      "validation_macro_f1": 0.7167181593492371,
+      "training_git_revision": "5f7e0068b6a4f97ff3269fc527dab673f2ccf07f",
+      "validation_summary": "results/system_b_temporal_main_validation.json",
+      "validation_summary_sha256": "3e3bb18b2be535ed79a0b48337b08ab06aecbda060b7d2f13181e089539f76d8"
+    },
+    "C": {
+      "file": "model_c.pkl",
+      "sha256": "c5b12e255edd7ec60697624c00664d05ee67ef8297931ec52bbcb2da2c97fe7b",
+      "selected_C": 0.5695262671673528,
+      "n_features": 396,
+      "validation_macro_f1": 0.745810629999553,
+      "training_git_revision": "6027f8228013a2f26f24e3695c7de19b6795f1c7",
+      "validation_summary": "results/system_c_temporal_main_validation.json",
+      "validation_summary_sha256": "393d45f60149cfc45e85ea1e0a8aee72a8d8ede69142789e1fbaac7a5212f4da"
+    }
+  },
+  "audit": {
+    "partition_sizes": {
+      "train": 11184,
+      "val": 3918,
+      "test": 3580
+    },
+    "cross_partition_overlap": {
+      "train_val": {
+        "post_ids": 0,
+        "normalized_teasers": 0,
+        "normalized_title_groups": 0
+      },
+      "train_test": {
+        "post_ids": 0,
+        "normalized_teasers": 0,
+        "normalized_title_groups": 0
+      },
+      "val_test": {
+        "post_ids": 0,
+        "normalized_teasers": 0,
+        "normalized_title_groups": 0
+      }
+    },
+    "validation_artifacts": "Both frozen models reproduce their exported validation probabilities exactly; C scaler matches training-only cue statistics"
+  },
+  "limitations": [
+    "Article overlap is guarded by normalized target-title groups; this does not guarantee article-content independence.",
+    "Adam's review of the title-based leakage policy remains pending in PLAN.md; this evaluation fixes the existing manifest.",
+    "April has not been used for B/C fitting or selection. System A April metrics were already available before this freeze.",
+    "This comparison provides a point estimate. Paired bootstrap, other splits, ablations and error analysis follow in Tasks 8-9."
+  ]
+}

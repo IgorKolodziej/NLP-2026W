@@ -12,7 +12,7 @@ Source: Zenodo record [5530410](https://zenodo.org/records/5530410), file `click
 
 1. Drop rows with empty teaser text after normalizing `postText`.
 2. **Teaser dedupe:** normalize teaser (lowercase, collapse whitespace); keep the row with the **earliest** `postTimestamp`.
-3. **Article overlap:** `article_group_key` = normalized `targetTitle`, or the instance `id` if the title is empty. Keep the **earliest** post per `article_group_key` so the same underlying article cannot appear in multiple splits.
+3. **Article overlap:** `article_group_key` = normalized `targetTitle`, or the instance `id` if the title is empty. Keep the **earliest** post per `article_group_key` so no normalized title group crosses splits. Titles are a proxy for article identity: one article with different titles may remain, while distinct articles with the same title may be merged.
 
 ## Splits
 
