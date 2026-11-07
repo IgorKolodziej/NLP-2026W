@@ -12,7 +12,7 @@ from clickbait.config import load_config, repo_root
 from clickbait.metrics import evaluate_split
 from clickbait.models.system_a import build_system_a_pipeline
 from clickbait.splits import load_manifest
-from clickbait.tuning import make_lr, tune_lr_c
+from clickbait.tuning import TuningConvergenceError, fit_lr, make_lr, tune_lr_c
 
 
 def _subset(df: pd.DataFrame, ids: list[str]) -> pd.DataFrame:
@@ -53,18 +53,23 @@ def main() -> None:
     x_test = pipe.transform(test_df["post_text"])
     fit_transform_s = time.perf_counter() - t0
 
-    best_c, val_macro_f1 = tune_lr_c(
-        x_train,
-        train_df["label"].to_numpy(),
-        x_val,
-        val_df["label"].to_numpy(),
-        cfg,
-        seed,
-    )
+    results_dir = root / cfg["paths"]["results"]
+    results_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        best_c, val_macro_f1, candidates = tune_lr_c(
+            x_train, train_df["label"].to_numpy(), x_val, val_df["label"].to_numpy(), cfg, seed,
+        )
+    except TuningConvergenceError as error:
+        failure = results_dir / f"system_a_{manifest.name}_tuning_failure.json"
+        failure.write_text(json.dumps({
+            "system": "A", "split": manifest.name, "status": "failed", "random_seed": seed,
+            "config": cfg, "candidates": error.candidates,
+        }, indent=2) + "\n", encoding="utf-8")
+        raise SystemExit(f"{error}; details: {failure.relative_to(root)}") from error
 
     lr = make_lr(best_c, cfg, seed)
     t1 = time.perf_counter()
-    lr.fit(x_train, train_df["label"])
+    fit_lr(lr, x_train, train_df["label"].to_numpy())
     train_predict_s = time.perf_counter() - t1
 
     def predict_block(x, y):
@@ -75,8 +80,6 @@ def main() -> None:
     val_metrics = predict_block(x_val, val_df["label"])
     test_metrics = predict_block(x_test, test_df["label"])
 
-    results_dir = root / cfg["paths"]["results"]
-    results_dir.mkdir(parents=True, exist_ok=True)
     out_path = results_dir / f"system_a_{manifest.name}.json"
     payload = {
         "system": "A",
@@ -88,6 +91,8 @@ def main() -> None:
             "protocol": "randomized search on validation macro-F1; refit on train only",
             "validation_macro_f1_at_best_C": val_macro_f1,
             "n_iter": int(cfg["randomized_search"]["n_iter"]),
+            "tie_break": "first sampled candidate",
+            "candidates": candidates,
         },
         "timing_seconds": {
             "tfidf_fit_transform_train_val_test": fit_transform_s,
