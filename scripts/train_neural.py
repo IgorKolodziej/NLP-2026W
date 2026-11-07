@@ -13,14 +13,14 @@ from importlib.metadata import version
 import pandas as pd
 
 from clickbait.config import load_config, repo_root
-from clickbait.models.neural import train_b_validation
+from clickbait.models.neural import train_neural_validation
 from clickbait.splits import load_manifest
 from clickbait.tuning import TuningConvergenceError
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Train system B and evaluate on validation only.")
-    parser.add_argument("--system", choices=["B"], required=True)
+    parser = argparse.ArgumentParser(description="Train system B or C and evaluate on validation only.")
+    parser.add_argument("--system", choices=["B", "C"], required=True)
     parser.add_argument("--split", required=True, help="Manifest basename, e.g. temporal_main")
     args = parser.parse_args()
     cfg = load_config()
@@ -36,14 +36,14 @@ def main() -> None:
     val = posts.loc[manifest.val_ids].reset_index()
     cache_dir = root / cfg["paths"]["cache"] / "embeddings"
     results_dir = root / cfg["paths"]["results"]
-    run_dir = results_dir / "runs" / f"b_{manifest.name}_validation"
+    run_dir = results_dir / "runs" / f"{args.system.lower()}_{manifest.name}_validation"
     run_dir.mkdir(parents=True, exist_ok=True)
     try:
-        model, summary, predictions = train_b_validation(train, val, cache_dir, cfg)
+        model, summary, predictions = train_neural_validation(train, val, cache_dir, cfg, args.system)
     except TuningConvergenceError as error:
         failure = run_dir / "tuning_failure.json"
         failure.write_text(json.dumps({
-            "system": "B", "split": manifest.name, "status": "failed",
+            "system": args.system, "split": manifest.name, "status": "failed",
             "config": cfg, "candidates": error.candidates,
         }, indent=2) + "\n", encoding="utf-8")
         raise SystemExit(f"{error}; details: {failure.relative_to(root)}") from error
@@ -60,7 +60,7 @@ def main() -> None:
         "command": shlex.join(["uv", "run", "--locked", "python", *sys.argv]),
         "git_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
         "code_dirty": bool(subprocess.check_output(
-            ["git", "status", "--porcelain", "--", "src", "scripts", "configs", "pyproject.toml", "uv.lock"],
+            ["git", "status", "--porcelain", "--", "src", "scripts", "configs", "resources", "pyproject.toml", "uv.lock"],
             cwd=root, text=True,
         ).strip()),
         "python_version": platform.python_version(),
@@ -75,9 +75,9 @@ def main() -> None:
             "validation_predictions": str(predictions_path.relative_to(root)),
         },
     })
-    summary_path = results_dir / f"system_b_{manifest.name}_validation.json"
+    summary_path = results_dir / f"system_{args.system.lower()}_{manifest.name}_validation.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-    print(f"B {manifest.name}/val: macro_f1={summary['validation']['macro_f1']:.6f}; best_C={summary['best_C']:.6g}")
+    print(f"{args.system} {manifest.name}/val: macro_f1={summary['validation']['macro_f1']:.6f}; best_C={summary['best_C']:.6g}")
     print(f"All {len(summary['tuning']['candidates'])} candidates converged; wrote {summary_path.relative_to(root)}")
 
 

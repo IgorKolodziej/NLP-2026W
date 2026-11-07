@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from clickbait.cues import CUE_NAMES, cues_matrix
@@ -41,35 +42,49 @@ def build_cue_scaler() -> ColumnTransformer:
     )
 
 
-def train_b_validation(
+def train_neural_validation(
     train_posts: pd.DataFrame,
     val_posts: pd.DataFrame,
     cache_dir: Path,
     cfg: dict[str, Any],
-) -> tuple[LogisticRegression, dict[str, Any], pd.DataFrame]:
+    system: str,
+) -> tuple[LogisticRegression | Pipeline, dict[str, Any], pd.DataFrame]:
     if cfg["training"]["refit_on"] != "train":
-        raise ValueError("B validation runs require training.refit_on: train")
+        raise ValueError("B/C validation runs require training.refit_on: train")
     seed = int(cfg["random_seed"])
     start = time.perf_counter()
-    x_train = load_neural_inputs(train_posts, cache_dir, cfg, "B")
-    x_val = load_neural_inputs(val_posts, cache_dir, cfg, "B")
+    x_train = load_neural_inputs(train_posts, cache_dir, cfg, system)
+    x_val = load_neural_inputs(val_posts, cache_dir, cfg, system)
     load_seconds = time.perf_counter() - start
     y_train = train_posts["label"].to_numpy()
     y_val = val_posts["label"].to_numpy()
 
+    preprocessor = None
+    train_features, val_features = x_train, x_val
+    scaling_seconds = 0.0
+    if system == "C":
+        start = time.perf_counter()
+        preprocessor = build_cue_scaler()
+        train_features = preprocessor.fit_transform(x_train)
+        val_features = preprocessor.transform(x_val)
+        scaling_seconds = time.perf_counter() - start
+
     start = time.perf_counter()
-    best_c, best_score, candidates = tune_lr_c(x_train, y_train, x_val, y_val, cfg, seed)
+    best_c, best_score, candidates = tune_lr_c(train_features, y_train, val_features, y_val, cfg, seed)
     tuning_seconds = time.perf_counter() - start
     start = time.perf_counter()
-    model = fit_lr(make_lr(best_c, cfg, seed), x_train, y_train)
+    classifier = fit_lr(make_lr(best_c, cfg, seed), train_features, y_train)
     fit_seconds = time.perf_counter() - start
+    model = classifier if preprocessor is None else Pipeline([
+        ("preprocessor", preprocessor), ("classifier", classifier),
+    ])
     start = time.perf_counter()
     probabilities = model.predict_proba(x_val)[:, 1]
     predictions = model.predict(x_val)
     predict_seconds = time.perf_counter() - start
 
     summary = {
-        "system": "B", "evaluation_partition": "val", "random_seed": seed,
+        "system": system, "evaluation_partition": "val", "random_seed": seed,
         "n_train": len(train_posts), "n_val": len(val_posts), "n_features": x_train.shape[1],
         "best_C": best_c,
         "tuning": {
@@ -79,14 +94,16 @@ def train_b_validation(
             "tie_break": "first sampled candidate",
             "candidates": candidates,
         },
-        "classifier_parameters": model.get_params(),
-        "final_fit_n_iter": int(model.n_iter_[0]),
+        "classifier_parameters": classifier.get_params(),
+        "final_fit_n_iter": int(classifier.n_iter_[0]),
         "validation": evaluate_split(y_val, probabilities, predictions),
         "timing_seconds": {
-            "cache_load": load_seconds, "tuning": tuning_seconds,
+            "feature_load": load_seconds, "cue_scaling": scaling_seconds, "tuning": tuning_seconds,
             "lr_fit_train": fit_seconds, "validation_predict": predict_seconds,
         },
     }
+    if system == "C":
+        summary["cue_names"] = CUE_NAMES
     output = pd.DataFrame({
         "post_id": val_posts["post_id"].to_numpy(), "partition": "val",
         "y_true": y_val, "y_pred": predictions, "p_clickbait": probabilities,

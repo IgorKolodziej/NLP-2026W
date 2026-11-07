@@ -256,21 +256,26 @@ Verified shapes for `temporal_main`: training B `(11184, 384)` and C `(11184, 39
 validation B `(3918, 384)` and C `(3918, 396)`. Checks cover finite float64 values,
 embedding equality, and standardized training cues.
 
-### B training and validation (Task 6)
+### B/C training and validation (Task 6)
 
-With the full embedding cache available, run B on CPU:
+With the full embedding cache available, run B and C on CPU:
 
 ```bash
 uv run --locked python scripts/train_neural.py --system B --split temporal_main
+uv run --locked python scripts/train_neural.py --system C --split temporal_main
 ```
 
 The runner uses the manifest's training and validation rows only: December–February for
-fitting and March for selecting the LR regularization strength. It draws the same 25
-log-uniform `C` values in `[0.01, 100]` as A, using seed 42, and selects the highest validation
+fitting and March for selecting the LR regularization strength. Both systems draw the same 25
+log-uniform `C` values in `[0.01, 100]` as A, using seed 42, and select the highest validation
 macro-F₁. Exact ties keep the first sampled candidate. The selected classifier is refitted
 on training data only, with `class_weight='balanced'` and the default 0.5 decision threshold.
 
-Outputs:
+For C, the cue scaler is fitted once on training rows. Every candidate and the final refit
+use these training statistics, while the 384 embedding columns pass through unchanged.
+The twelve cues and their matching rules remain as documented in [`docs/cues.md`](docs/cues.md).
+
+B outputs:
 
 - `results/system_b_temporal_main_validation.json`: validation metrics, all candidate scores,
   convergence status, iteration counts, fit times, configuration, versions and input hashes.
@@ -279,9 +284,17 @@ Outputs:
 - `results/runs/b_temporal_main_validation/validation_predictions.parquet`: manifest-ordered
   `post_id`, `partition`, `y_true`, `y_pred` and `p_clickbait` columns.
 
+C uses the same filenames under `results/runs/c_temporal_main_validation/`, with its summary
+in `results/system_c_temporal_main_validation.json`. Its `model.pkl` is a fitted scikit-learn
+`Pipeline` containing `preprocessor` (embedding passthrough and cue scaler) and `classifier`
+(LR). Pass the 396 **unscaled** input columns from `load_neural_inputs(..., system="C")` to
+`predict` or `predict_proba`; the saved pipeline applies its training statistics automatically.
+The summary records `cue_names` in input order. Both systems record feature-loading,
+cue-scaling, tuning, final-fit and prediction times separately.
+
 Model and prediction files are gitignored. Each invocation replaces these split-specific
 outputs. A nonconverged candidate aborts the search and writes its diagnostic history to
-`results/runs/b_temporal_main_validation/tuning_failure.json`; no partial winner is selected
+`tuning_failure.json` in the system's run directory; no partial winner is selected
 or new success artifacts written. Resolve the warning and rerun the complete search. Any
 increase of `logistic_regression.max_iter` belongs in the shared configuration for A/B/C.
 The final refit also fails on a convergence warning.
@@ -291,9 +304,11 @@ Measure the complete validation run, including loading and artifact export, with
 ```bash
 /usr/bin/time -v -o results/system_b_temporal_main_validation_time.txt \
   uv run --locked python scripts/train_neural.py --system B --split temporal_main
+/usr/bin/time -v -o results/system_c_temporal_main_validation_time.txt \
+  uv run --locked python scripts/train_neural.py --system C --split temporal_main
 ```
 
-Recorded CPU run on `temporal_main/val` (11,184 training and 3,918 validation posts):
+Recorded B CPU run on `temporal_main/val` (11,184 training and 3,918 validation posts):
 macro-F₁ **0.716718**, selected `C=19.545485`. All 25 candidates converged in 6–57 iterations;
 the final refit took 41 iterations. Reloading the classifier reproduces the exported
 predictions and probabilities exactly. The [run summary](results/system_b_temporal_main_validation.json)
@@ -304,7 +319,7 @@ wall time and **357,856 KiB** peak RSS (349.5 MiB) on an AMD Ryzen 7 5700U with 
 This includes the full search, refit and export using the existing cache; embedding
 generation is measured separately in Task 5.
 
-These are model-selection results on March validation. C training and the frozen April
-test comparison remain later steps of Task 6; the runner currently accepts only `--system B`.
+These are model-selection results on March validation. The frozen April test comparison
+remains the next step of Task 6.
 
 Further model and experiment reproduction steps will be added in [`PLAN.md`](PLAN.md) Task 10.
