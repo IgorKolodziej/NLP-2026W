@@ -279,17 +279,18 @@ uv run python scripts/train_system_a.py --split temporal_main
 
 - [x] ID-aligned float64 B/C feature construction and train-only cue scaling. Unit tests and `scripts/check_neural_features.py --split temporal_main` verify the training/validation matrices, embedding equality, and cue order.
 - [x] Shared tuning history and convergence handling; B training/validation runner with model and prediction exports. All 25 candidates converged on CPU; `temporal_main/val` macro-F₁ is 0.716718. The [summary](results/system_b_temporal_main_validation.json) and [GNU time log](results/system_b_temporal_main_validation_time.txt) record the run; reloading the classifier reproduces the exported predictions and probabilities exactly.
-- [ ] C training through the shared protocol; fitted cue scaler, classifier and prediction exports.
+- [x] C training through the shared protocol; fitted cue scaler, classifier and prediction exports. All 25 candidates converged on CPU; `temporal_main/val` macro-F₁ is 0.745811. The [summary](results/system_c_temporal_main_validation.json) and [GNU time log](results/system_c_temporal_main_validation_time.txt) record the run. Saved scaler statistics match the training cues; the reloaded pipeline reproduces exported probabilities exactly. B/C input hashes, validation IDs and tuning settings agree.
 - [ ] Frozen `temporal_main` B/C evaluation, measured runtime/memory, and README reproduction commands.
 
 **Human — Igor:**
 
 ```bash
 uv run --locked python scripts/train_neural.py --system B --split temporal_main
+uv run --locked python scripts/train_neural.py --system C --split temporal_main
 ```
 
-This command currently evaluates validation only. C training and the frozen April test
-comparison are the remaining increments above.
+These commands currently evaluate validation only. The frozen April B/C test comparison
+is the remaining increment above.
 
 ---
 

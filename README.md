@@ -308,16 +308,20 @@ Measure the complete validation run, including loading and artifact export, with
   uv run --locked python scripts/train_neural.py --system C --split temporal_main
 ```
 
-Recorded B CPU run on `temporal_main/val` (11,184 training and 3,918 validation posts):
-macro-F₁ **0.716718**, selected `C=19.545485`. All 25 candidates converged in 6–57 iterations;
-the final refit took 41 iterations. Reloading the classifier reproduces the exported
-predictions and probabilities exactly. The [run summary](results/system_b_temporal_main_validation.json)
-contains the full candidate history and secondary metrics.
+Recorded CPU runs: 11,184 training and 3,918 validation posts, on an AMD Ryzen 7 5700U
+with 16 logical CPUs. Wall time and peak RSS cover each full search, refit and export
+using the existing cache; embedding generation is measured separately in Task 5.
 
-The [GNU time log](results/system_b_temporal_main_validation_time.txt) records **15.88 s**
-wall time and **357,856 KiB** peak RSS (349.5 MiB) on an AMD Ryzen 7 5700U with 16 logical CPUs.
-This includes the full search, refit and export using the existing cache; embedding
-generation is measured separately in Task 5.
+| System (run summary) | Split/partition | Macro-F₁ | Selected `C` | Wall time (GNU time log) | Peak RSS |
+|---|---|---:|---:|---:|---:|
+| [B](results/system_b_temporal_main_validation.json) | `temporal_main/val` | 0.716718 | 19.545485 | [15.88 s](results/system_b_temporal_main_validation_time.txt) | 357,856 KiB (349.5 MiB) |
+| [C](results/system_c_temporal_main_validation.json) | `temporal_main/val` | 0.745811 | 0.569526 | [58.97 s](results/system_c_temporal_main_validation_time.txt) | 406,284 KiB (396.8 MiB) |
+
+All 25 candidates converged for each system: 6–57 iterations for B and 15–209 for C;
+the final refits took 41 and 89 iterations respectively. Reloading each model reproduces
+its exported predictions and probabilities exactly. C's saved scaler matches the training
+cue statistics, and the B/C input hashes, validation IDs and tuning settings agree.
+The run summaries contain full candidate histories and secondary metrics.
 
 These are model-selection results on March validation. The frozen April test comparison
 remains the next step of Task 6.
