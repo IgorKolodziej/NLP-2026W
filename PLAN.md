@@ -91,7 +91,7 @@ Document the released Webis-17 label construction as specified in v4.1: the moda
 - [x] P5 — Readable, accurate presentation figures/tables/examples
 - [x] P6 — Rendered Quarto deck and timed two-presenter script
 
-Verified checkpoint evidence is in `results/poc/main/`: A/B/C April macro-F₁ 0.747911 / 0.711133 / 0.737411, C−B +0.026278, on 3,580 posts. `reproduction.json` records matching predictions/probabilities/metrics from a second full fit in a fresh locked environment. The relevant suite passes 58 tests. The reviewed presentation has twelve timed slides and a synchronized 1,215-word two-presenter script, with the selected reference style applied. Problem/SOTA occupies the first five minutes, the PoC one minute, and the presenter handoff is at 05:00. The team still needs a timed rehearsal, recording and Teams submission; broader tasks below remain subject to their full acceptance/merge criteria.
+Verified checkpoint evidence is in `results/poc/main/`: A/B/C April macro-F₁ 0.747911 / 0.711133 / 0.737411, C−B +0.026278, on 3,580 posts. `reproduction.json` records matching predictions/probabilities/metrics from a second full fit in a fresh locked environment. The relevant suite passes 58 tests. The reviewed presentation has twelve timed slides and a synchronized 1,217-word two-presenter script, with the selected reference style applied. Problem/SOTA occupies the first five minutes, the PoC one minute, and the presenter handoff is at 05:00. The team still needs a timed rehearsal, recording and Teams submission; broader tasks below remain subject to their full acceptance/merge criteria.
 
 ## Progress and migration baseline
 

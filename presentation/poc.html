@@ -1412,7 +1412,7 @@ display:block!important;
 </thead>
 <tbody>
 <tr class="odd">
-<td>Representation control</td>
+<td>Embedding comparison</td>
 <td>3,072-d embedding baseline vs 1,000-d hybrid</td>
 <td>Same 384 embedding coordinates and LR family for B/C</td>
 </tr>
@@ -1423,8 +1423,8 @@ display:block!important;
 </tr>
 <tr class="odd">
 <td>Cue evidence</td>
-<td>Whole-feature-block ablation</td>
-<td>C−B uncertainty and four family ablations</td>
+<td>All 15 cues tested together</td>
+<td>C−B uncertainty + four cue-group tests</td>
 </tr>
 </tbody>
 </table>
@@ -1518,7 +1518,7 @@ The open question: <strong>when and why does the added value of interpretable cu
 <aside class="notes">
 <p><strong>04:10-05:00 - Presenter 1</strong></p>
 <p>How we split the data matters. Søgaard and colleagues show that random splits can give optimistic estimates of performance on new samples. We plan to compare later-month tests with random splits that keep posts linked to the same article together.</p>
-<p>Röttger and Pierrehumbert found that adapting a model to a time period gave no extra classification benefit beyond adapting it to the type of text. We therefore need to measure whether language changes affect our results.</p>
+<p>Röttger and Pierrehumbert found that extra pretraining on text from a specific period did not improve their classifier beyond pretraining on the same type of text. We therefore need to measure whether language changes affect our results.</p>
 <p>RoCliCo tests articles from unseen publishers. Our data lacks publisher IDs, so later-month tests cannot establish that kind of transfer. Presenter Two will now explain our study.</p>
 <p><strong>Sources and evidence (not spoken):</strong></p>
 <p><a href="https://aclanthology.org/2021.eacl-main.156/">Søgaard et al.</a>, <a href="https://aclanthology.org/2021.findings-emnlp.206/">Röttger &amp; Pierrehumbert</a>, <a href="https://aclanthology.org/2023.findings-emnlp.640/">Broscoțeanu &amp; Ionescu</a>. These studies motivate controls, they do not prove degradation in our corpus.</p>
@@ -1715,7 +1715,7 @@ C−B = +0.0263
 <p><strong>07:10-08:10 - Presenter 2</strong></p>
 <p>The proof of concept saves predictions for all three models on the same test posts. Reloading the models reproduced those predictions. A separate run in a fresh environment with the same package versions also matched.</p>
 <p>On April, A scores macro F-one zero point seven four seven nine. B scores zero point seven one one one. C scores zero point seven three seven four. Adding cues to B gives about two point six three percentage points.</p>
-<p>So cues improve B in this run, but A remains strongest. We have tested one time window and have not calculated a confidence interval for the difference. April was excluded from training and model selection, but the team had already seen earlier pilot results on it. These findings are preliminary.</p>
+<p>So cues improve B in this run, but A remains strongest. This PoC covers one time window, and we have not calculated a confidence interval for the difference. April was excluded from training and model selection, but the team had already seen earlier pilot results on it. These findings are preliminary.</p>
 <p><strong>Sources and evidence (not spoken):</strong></p>
 <p>temporal_main/test, April 2017: n=3,580, clickbait=830 (23.2%). Source: <code>results/poc/main/summary.json</code>. April excluded from fitting/selection, but exposed in an earlier pilot. Preliminary point estimates, temporal robustness is untested.</p>
 <style type="text/css">

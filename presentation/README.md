@@ -62,6 +62,6 @@ uv run --locked python scripts/run_poc.py --verify results/poc/local
 
 ## Rehearsal and submission
 
-The exact script contains **1,215 spoken words** with contiguous **600-second** windows and a **05:00 handoff**. Rehearse aloud with both presenters, allowing for paper names, decimal scores, slide changes and pauses. The timings are targets. No recording duration has been measured. Stop after slide 12.
+The exact script contains **1,217 spoken words** with contiguous **600-second** windows and a **05:00 handoff**. Rehearse aloud with both presenters, allowing for paper names, decimal scores, slide changes and pauses. The timings are targets. No recording duration has been measured. Stop after slide 12.
 
 Record the screen and microphone audio, check legibility and both audio levels, then submit the video to the course Teams channel. No video has been recorded or uploaded. The 18 November video prepares the 25 November Q&A and 2 December Phase 2 submission. Contribution hours, the formal LLM declaration, data statement, MR and point-by-point rebuttal remain report/submission responsibilities.

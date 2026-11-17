@@ -1,34 +1,57 @@
-# Presentation review resolution
+# Presentation review
 
-Review target: the approved storyboard, current reveal.js source/HTML, exact two-person script and pinned PoC artifacts. The earlier independent review is retained as a historical record in [independent_review.md](independent_review.md), its slide references describe an earlier draft.
+## Factual audit - 17 November 2026
 
-## Narrative and scientific claims
+The revised speech agrees with the proposal's scientific design and the saved main-window experiment. Numerical claims passed model-reload verification. Planned robustness, uncertainty, family and context experiments are explicitly described as unfinished.
 
-| Review question | Current resolution |
-|---|---|
-| Is the problem understandable before the models? | Slides 1-2 define the teaser/label task, illustrate withheld information and explain ambiguity. |
-| Does half the talk cover problem and SOTA? | Slides 1-6 occupy exactly 00:00-05:00. Feature, neural, hybrid/context and evaluation papers each have an explicit purpose. |
-| Are papers explained beyond author lists? | Slides 3-5 describe input, mechanism and research question. Michaluk is the closest precedent, additional literature is retained in the preparation notes. |
-| Is our intended difference clear? | Fixed embeddings, matched LR family/tuning budget, chronological versus grouped-random cue effects, family removals and a separate matched-input relation experiment. |
-| Are novelty claims defensible? | The talk acknowledges existing linguistic cues, hybrid models and title-body comparison. It claims a proposed combination of controls and analysis, not ownership of those ideas. |
-| Is the PoC proportionate? | One main slide, 07:10-08:10. Detailed costs, audits, examples and secondary metrics remain in the repository evidence. |
-| Are findings interpreted correctly? | C−B is +0.0263 on April, while A remains strongest. One window, no paired interval and prior April exposure are disclosed beside the result. |
-| Are planned and completed work distinct? | Slides 7-8 describe the study, slide 9 reports current evidence, slide 10 marks remaining experiments as future work. |
-| Does the ending state a scientific aim? | Slide 11 returns to when cues help and whether their value persists, negative or unstable effects remain informative. |
+| Claim | Evidence checked | Finding |
+|---|---|---|
+| English teaser classification using released human labels | Proposal research questions and dataset section, [dataset loader](../src/clickbait/dataset.py) | Matches. No click-count or factual-verification claim. |
+| Cleaned corpus: 18,682 posts, about 24% clickbait | [Summary](../results/poc/main/summary.json), [exclusion ledger](../results/poc/main/exclusion_ledger.csv), processed IDs/labels | Matches: 4,448 positives, 23.809%. Cleaning excludes 54 empty teasers, 411 repeated teasers and 391 repeated article titles. Retained IDs match processed data. |
+| Train December-February, validate March, test April | [Protocol](../results/poc/main/protocol.json) and split manifest | Matches: 11,184 / 3,918 / 3,580 posts. April has 830 positives. |
+| A uses word/character TF-IDF, B uses fixed MiniLM, C appends twelve cues to B | Proposal model section, [A](../src/clickbait/models/system_a.py), [B/C](../src/clickbait/models/neural.py), [cue definitions](../docs/cues.md) | Matches. C retains the same embedding coordinates. Four groups contain three cues each. |
+| Shared classifier family and tuning budget, train-only transforms | Protocol, [tuning](../src/clickbait/tuning.py), model code | Matches. Balanced LR, five C values, March selection and train-only final fit. Only cue columns are scaled for C. |
+| April macro-F1 A 0.7479, B 0.7111, C 0.7374, C-B +0.0263 | Saved models, predictions and summary, recomputed by the verifier | Matches. The unrounded difference is 0.0262776967, or 2.6278 percentage points. A is strongest in this run. |
+| Reload and fresh-environment reproduction | Current reload verification and [recorded independent refit](../results/poc/main/reproduction.json) | Reload passed during this audit. The earlier fresh-environment refit record matches the summary hash. A new full training run was not required or performed for this audit. |
+| Three chronological tests, three grouped-random diagnostics, paired bootstrap and cue-family removals | Proposal H1-H3 and evaluation section | Correct as planned work. The presented twelve-cue PoC covers one main window, not the full robustness study. |
+| Additional relation cues beyond a context-aware baseline already containing the twelve teaser cues | Proposal H4 and matched-context section | Correct as planned work. All context comparators share rows, teaser, title and a 96-word article lead. |
+| No external transfer or current-deployment/source-transfer claim | Proposal limitations and current results | Correct. Webis-16 checks and near-duplicate/cross-corpus auditing remain unfinished. No publisher IDs are available. |
 
-## Content and rendering checks
+The verification command was:
 
-- Eleven spoken slides, ending on the closing slide, with one manual cover and no generated duplicate.
-- All eleven note speeches match the script verbatim: **1,179 words**, 599 for Presenter 1 and 580 for Presenter 2.
-- Contiguous timing windows total **600 seconds**, handoff at **05:00**. Per-slide targets are approximately 109-125 words/minute.
-- Displayed April macro-F1 values and C−B match `results/poc/main/summary.json`.
-- Paper references in presenter notes link to the corresponding primary sources, the RoCliCo reference uses the verified Anthology paper ending in `640`.
-- Every slide was visually inspected at **1600×900**. No horizontal clipping, missing images or content/footer collisions were detected. Embedded Inter loaded successfully.
-- The HTML contains embedded CSS, font, runtime and the displayed result chart, with no external runtime dependencies.
-- The warm-paper/dark-teal reference design, typography, and teal/orange accents are preserved. Small source footers and middle-dot separators are removed, sources remain in presenter notes.
+```bash
+uv run --locked python scripts/run_poc.py --verify results/poc/main
+```
 
-## Remaining team actions and limits
+It checks saved input/model hashes, software versions, test IDs and labels, reloaded predictions/probabilities, every saved test metric and C-B. It passed with C-B = 0.02627769674856828.
 
-An aloud rehearsal must establish actual duration and check both presenters' pronunciation, pacing, handoff and audio levels. The 600-second schedule is not a measured recording. No video has been recorded or submitted.
+## Proposal wording that no longer describes the current status
 
-The scientific limits remain material: historical collection, subjective labels, topic/time confounding, imperfect article proxies, no publisher IDs, unfinished near-duplicate auditing, no external transfer result and no paired uncertainty yet. A/B/C share LR, the distinct decision-model-family plan for Phase 2 still needs confirmation. Current materials disclose these points and do not claim complete Phase 2 compliance.
+- The proposal calls April untouched. Earlier pilot exposure means it is not a fresh blind test. The speech explicitly says April was excluded from fitting/selection but had already been seen in pilot results.
+- The proposal leaves the 391-row discrepancy unresolved. The current ledger now reconciles those exclusions as repeated normalized article titles. The speech uses the verified cleaned count.
+- The protocol snapshot contains a legacy 70/15/15 random-split configuration. The revised proposal calls for random diagnostics matching the main chronological proportions. The current PoC does not execute or report these diagnostics. Their implementation must follow the revised plan before they can support a claim.
+
+## SOTA and the dedicated Michaluk slide
+
+The paper summaries follow the proposal. The dedicated Michaluk slide also checks the [primary paper, Table 4](https://arxiv.org/html/2602.18171v1): the reported embedding-only/hybrid comparison changes embedding width. Our B/C design keeps the vectors unchanged. The slide acknowledges the existing hybrid and feature-block comparison, and states our planned temporal, uncertainty and cue-group tests. It does not rank unlike published scores against our April macro-F1.
+
+The Röttger-Pierrehumbert summary specifically concerns extra pretraining, avoiding a broader claim that all forms of time-specific model adaptation are ineffective.
+
+## Wording changes
+
+- Explained an embedding as a vector of numbers representing text.
+- Replaced withheld referent, incremental value, paired uncertainty and calibration alongside prevalence with direct descriptions where the technical term was unnecessary.
+- Explained grouped random splits as keeping posts linked to the same article together.
+- Used future tense for comparisons and cue-group removals that have not been completed.
+- Defined the purpose of the relation experiment and kept the matching-input condition explicit.
+- Preserved the one-window, missing-interval and earlier-April-exposure qualifications.
+
+## Timing and rendering
+
+The deck has **12 slides**, with Michaluk on slide 5 at **02:55-03:45** and Wu on slide 6 at **03:45-04:10**. Problem/SOTA occupies **00:00-05:00**, the handoff is **05:00**, and the PoC remains **07:10-08:10**.
+
+All twelve speeches match the notes: **1,217 words**, 595 for Presenter 1 and 622 for Presenter 2. The schedule totals **600 seconds**. Actual duration requires an aloud rehearsal.
+
+The rendered slides were checked at 1600x900. No horizontal clipping or missing figures were detected. The warm-paper/dark-teal style is retained. There are no backup slides, small source footers, middle-dot separators, long dashes or semicolons in visible slide content. Sources remain in presenter notes. The HTML embeds its runtime, styling, font and result chart.
+
+No video has been recorded or submitted. All current classifiers use LR, so a distinct classifier-family plan for Phase 2 still needs confirmation. Optional Jeff and YouTube experiments do not determine completion of the core scientific study.

@@ -122,14 +122,14 @@ Before December second, we will strengthen the experiments, data checks, literat
 | 4 | 02:05-02:55 | 1 | Learning patterns from text | 106 |
 | 5 | 02:55-03:45 | 1 | Michaluk et al.: our starting point | 93 |
 | 6 | 03:45-04:10 | 1 | Title style and article context | 47 |
-| 7 | 04:10-05:00 | 1 | Evidence for generalization | 103 |
+| 7 | 04:10-05:00 | 1 | Evidence for generalization | 104 |
 | 8 | 05:00-06:15 | 2 | Our proposed study | 157 |
 | 9 | 06:15-07:10 | 2 | Data and evaluation design | 114 |
-| 10 | 07:10-08:10 | 2 | PoC: cues improve B, A remains strongest | 125 |
+| 10 | 07:10-08:10 | 2 | PoC: cues improve B, A remains strongest | 126 |
 | 11 | 08:10-09:10 | 2 | Remaining experiments | 124 |
 | 12 | 09:10-10:00 | 2 | Intended contribution and next checkpoint | 101 |
 
-Total spoken words: **1,215**. Presenter 1: **594** words. Presenter 2: **621** words. The twelve windows total **600 seconds**. Slide targets range from 110 to 127 words per minute, allowing for pronunciation, pointing and pauses.
+Total spoken words: **1,217**. Presenter 1: **595** words. Presenter 2: **622** words. The twelve windows total **600 seconds**. Slide targets range from 110 to 127 words per minute, allowing for pronunciation, pointing and pauses.
 
 Rehearse aloud with a stopwatch, especially the paper names, decimal scores and 05:00 handoff. If ahead, pause after the example, tables and result. If behind, practise a steadier delivery. Keep the qualifications about incomplete experiments and earlier April exposure.
 
