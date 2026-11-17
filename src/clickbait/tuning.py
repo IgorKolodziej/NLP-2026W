@@ -5,7 +5,6 @@ import warnings
 from typing import Any
 
 import numpy as np
-from scipy.stats import loguniform
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression
 
@@ -18,15 +17,13 @@ class TuningConvergenceError(RuntimeError):
         super().__init__(f"LR did not converge at C={candidates[-1]['C']:.6g}; search aborted")
 
 
-def sample_c_values(cfg: dict[str, Any], rng: np.random.Generator) -> list[float]:
-    rs = cfg["randomized_search"]
-    c_cfg = rs["C"]
-    low = float(c_cfg["low"])
-    high = float(c_cfg["high"])
-    n_iter = int(rs["n_iter"])
-    if n_iter < 1:
-        raise ValueError("randomized_search.n_iter must be positive")
-    return loguniform.rvs(low, high, size=n_iter, random_state=rng).tolist()
+def candidate_c_values(cfg: dict[str, Any]) -> list[float]:
+    values = np.asarray(cfg["grid_search"]["C"], dtype=float)
+    if values.ndim != 1 or not len(values) or not np.isfinite(values).all() or (values <= 0).any():
+        raise ValueError("grid_search.C must be a nonempty list of finite positive values")
+    if len(set(values)) != len(values):
+        raise ValueError("grid_search.C must not contain duplicates")
+    return sorted(values.tolist())
 
 
 def fit_lr(model: LogisticRegression, x_train, y_train) -> LogisticRegression:
@@ -44,11 +41,10 @@ def tune_lr_c(
     cfg: dict[str, Any],
     seed: int,
 ) -> tuple[float, float, list[dict[str, Any]]]:
-    rng = np.random.default_rng(seed)
     best_c = 1.0
     best_score = -1.0
     candidates = []
-    for c in sample_c_values(cfg, rng):
+    for c in candidate_c_values(cfg):
         model = make_lr(float(c), cfg, seed)
         start = time.perf_counter()
         try:

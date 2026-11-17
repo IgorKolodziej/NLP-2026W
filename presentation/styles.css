@@ -1,0 +1,254 @@
+/* Presentation-specific styling. All referenced assets embed into the HTML. */
+@font-face {
+  font-family: "Inter Seminar";
+  src: url("assets/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+:root {
+  --paper: #faf9f5;
+  --ink: #142f38;
+  --teal: #007f78;
+  --orange: #b76831;
+  --muted: #63737a;
+  --rule: #d9dfdb;
+  --mint: #8ee0c2;
+  --r-background-color: #faf9f5;
+}
+body { background: var(--paper); }
+.reveal {
+  font-family: "Inter Seminar", "Segoe UI", Arial, sans-serif;
+  font-size: 32px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.reveal .slides { text-align: left; }
+.reveal .slides section {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 72px 96px 86px;
+}
+.reveal .slides section > :first-child { margin-top: 0; }
+.reveal h1, .reveal h2, .reveal h3 {
+  color: inherit;
+  font-family: inherit;
+  text-transform: none;
+  text-shadow: none;
+  font-weight: 650;
+  letter-spacing: -.045em;
+}
+.reveal h2 { font-size: 56px; line-height: 1.12; margin: 0 0 42px; }
+.reveal p { margin: 0 0 25px; }
+.reveal strong { font-weight: 650; }
+.reveal a { color: var(--teal); text-decoration: none; }
+.reveal a:hover { text-decoration: underline; }
+.reveal .lead { font-size: 33px; color: var(--muted); margin-bottom: 36px; }
+.reveal .muted { color: var(--muted); }
+.reveal .teal { color: var(--teal); }
+.reveal .orange { color: var(--orange); }
+.reveal .mint { color: var(--mint); }
+.reveal .small { font-size: 25px; line-height: 1.4; }
+.reveal .columns { display: flex; gap: 52px; margin: 0; align-items: center; }
+.reveal .column { padding: 0; min-width: 0; flex-shrink: 1; }
+.reveal .katex { font-size: 1.10em; }
+.reveal .katex-display { margin: .6em 0; }
+.reveal img { border: 0; box-shadow: none; background: transparent; margin: 0; max-width: 100%; }
+.reveal figure { margin: 0; }
+.reveal .figure-caption { font-size: 22px; color: var(--muted); text-align: center; }
+.reveal .takeaway {
+  margin-top: 42px;
+  padding-top: 25px;
+  border-top: 2px solid var(--rule);
+  font-size: 34px;
+  line-height: 1.4;
+}
+.reveal .takeaway.compact { font-size: 30px; margin-top: 28px; }
+.reveal .source {
+  position: absolute;
+  bottom: 29px;
+  left: 96px;
+  right: 125px;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.reveal .source p { margin: 0; }
+.reveal .source .katex { font-size: 1.03em; }
+.reveal .source code { font-size: 17px; }
+.reveal pre {
+  width: 100%;
+  margin: 0 0 25px;
+  font-size: 25px;
+  line-height: 1.55;
+  border: 0;
+  box-shadow: none;
+}
+.reveal div.sourceCode {
+  border: 0;
+  border-left: 4px solid var(--teal);
+  background: #eef2ed;
+  border-radius: 0;
+  padding: 22px 26px;
+}
+.reveal div.sourceCode pre { margin: 0; background: transparent; }
+.reveal pre code { max-height: none; padding: 0; background: transparent; overflow: visible; }
+.reveal code { font-family: "DejaVu Sans Mono", "Consolas", monospace; }
+.reveal p code { color: var(--teal); background: #edf1eb; padding: 1px 6px; }
+.reveal .cover, .reveal .closing { color: var(--paper); }
+.reveal .cover { padding-top: 110px; }
+.reveal .cover h2 { font-size: 110px; margin: 0 0 22px; letter-spacing: -.065em; }
+.reveal .cover-subtitle { font-size: 47px; font-weight: 350; color: #c9dfd9; }
+.reveal .cover-author { position: absolute; left: 100px; bottom: 108px; font-size: 25px; color: #c9dfd9; }
+.reveal .cover-author strong { font-size: 34px; color: var(--paper); }
+.reveal .cover-author p { margin-bottom: 17px; }
+.reveal .cover-context { display: inline-block; margin-top: 20px; font-size: 21px; color: #8eaaa6; }
+.reveal .cover-equation { position: absolute; right: 110px; bottom: 140px; color: var(--mint); font-size: 104px; }
+.reveal .numbers-row { margin-top: 35px; margin-bottom: 10px; align-items: baseline; }
+.reveal .big-number { display: inline-block; font-size: 83px; line-height: 1.1; font-weight: 620; letter-spacing: -.065em; }
+.reveal .big-number .katex { font-size: 1em; }
+.reveal #request .takeaway { margin-top: 48px; }
+.reveal #pca .columns { align-items: center; }
+.reveal #pca .column p { margin-bottom: 22px; }
+.reveal #pca .katex { font-size: 1.05em; }
+.reveal .equation-small { font-size: 29px; }
+.reveal .hero-equation { font-size: 46px; margin: 35px 0 50px; }
+.reveal .sketch-details { align-items: center; }
+.reveal .dimension-example { font-size: 40px; color: var(--teal); }
+.reveal .intuition-equation { font-size: 43px; margin-top: -20px; margin-bottom: 10px; }
+.reveal .probe-figure { height: 365px; object-fit: contain; }
+.reveal #intuition .takeaway { margin-top: 15px; }
+.reveal table { width: 100%; border-collapse: collapse; font-size: 31px; }
+.reveal table th, .reveal table td { border: 0; border-bottom: 1px solid var(--rule); padding: 21px 15px; vertical-align: middle; }
+.reveal table th { font-size: 23px; font-weight: 550; color: var(--muted); border-bottom: 2px solid #bdcbc7; }
+.reveal table tr:last-child td { border-bottom: 0; }
+.reveal .algorithm table td:first-child { width: 52%; font-size: 30px; }
+.reveal .algorithm table td:last-child { width: 48%; font-size: 34px; }
+.reveal .algorithm table td { padding-top: 23px; padding-bottom: 23px; }
+.reveal .algorithm table th { padding-top: 0; }
+.reveal #algorithm .takeaway { margin-top: 20px; }
+.reveal .knobs { align-items: flex-start; gap: 80px; }
+.reveal .knob-symbol { display: block; font-size: 73px; color: var(--teal); margin-bottom: 15px; line-height: 1; }
+.reveal .knob-symbol.orange { color: var(--orange); }
+.reveal .knobs .column > p { margin-bottom: 18px; }
+.reveal .knobs .katex-display { text-align: left; margin-top: 27px; }
+.reveal .knobs .power-effect { font-size: 30px; color: var(--muted); }
+.reveal #accuracy .takeaway { margin-top: 30px; }
+.reveal #software .columns { align-items: center; gap: 55px; }
+.reveal #software pre { font-size: 22px; line-height: 1.68; }
+.reveal .kernel-list { padding-left: 8px; font-size: 28px; line-height: 1.45; }
+.reveal .kernel-list p { margin-bottom: 28px; }
+.reveal .kernel-list strong { color: var(--teal); }
+.reveal .experiment-columns { align-items: flex-start; gap: 35px; }
+.reveal .experiment-columns ul { margin-left: 30px; font-size: 29px; }
+.reveal .experiment-columns li { margin-bottom: 15px; }
+.reveal #experiment .column img { max-height: 395px; object-fit: contain; }
+.reveal .metric-line { font-size: 29px; margin-top: 25px; padding-top: 14px; border-top: 2px solid var(--rule); }
+.reveal #experiment h2 { margin-bottom: 30px; }
+.reveal .results .lead { font-size: 28px; margin-bottom: 20px; }
+.reveal .results-table table { font-size: 31px; font-variant-numeric: tabular-nums; }
+.reveal .results-table table td, .reveal .results-table table th { padding: 16px 17px; }
+.reveal .results-table table td:first-child { width: 34%; }
+.reveal .results-table table td:nth-child(2),
+.reveal .results-table table td:nth-child(3),
+.reveal .results-table table th:nth-child(2),
+.reveal .results-table table th:nth-child(3) { color: var(--teal); }
+.reveal .results-table table td:nth-child(4),
+.reveal .results-table table td:nth-child(5),
+.reveal .results-table table th:nth-child(4),
+.reveal .results-table table th:nth-child(5) { color: var(--orange); }
+.reveal .results-table tbody tr:last-child { background: #eaf1e8; }
+.reveal .result-comment { margin-top: 27px; font-size: 30px; line-height: 1.5; }
+.reveal .conditions-table table td:first-child { width: 43%; }
+.reveal .conditions-table table td { padding: 25px 15px; }
+.reveal #conditions .takeaway { margin-top: 28px; }
+.reveal .closing h2 { color: #a3c4bb; font-size: 35px; letter-spacing: -.025em; }
+.reveal .closing-statement { margin-top: 45px; font-size: 75px; line-height: 1.22; font-weight: 550; letter-spacing: -.05em; }
+.reveal .closing-detail { margin-top: 58px; font-size: 30px; max-width: 1170px; color: #c9dfd9; }
+.reveal .questions { position: absolute; left: 96px; bottom: 65px; font-size: 27px; color: var(--mint); }
+.reveal .references ol { font-size: 28px; line-height: 1.5; margin-left: 34px; }
+.reveal .references li { padding-left: 12px; margin-bottom: 28px; }
+.reveal .backup-label { color: var(--teal); font-size: 21px; margin-top: -20px; margin-bottom: 27px; }
+.reveal .backup { font-size: 29px; }
+.reveal .backup .katex { font-size: 1.07em; }
+.reveal .backup .columns { align-items: flex-start; gap: 70px; }
+.reveal .backup-fact { margin-top: 28px; font-size: 28px; color: var(--teal); }
+.reveal .backup table { font-size: 28px; }
+.reveal #backup-cost table td:last-child { font-size: 25px; }
+.reveal .slide-number { font-family: "Inter Seminar", Arial, sans-serif; font-size: 17px; color: #6c7c7c; background: transparent; right: 28px; bottom: 24px; }
+.reveal .progress { height: 4px; color: var(--teal); }
+.reveal .controls { color: var(--teal); }
+.reveal .slide-menu-button { color: var(--teal); }
+.reveal .slide-menu-button .fa-bars { font-size: 22px; }
+@media print {
+  .reveal .slides section { padding: 72px 96px 86px !important; }
+  .reveal .source { bottom: 29px !important; }
+}
+
+
+/* Content layouts on the approved reference grid. */
+.reveal table { margin:0 0 28px; font-size:29px; }
+.reveal table th,.reveal table td { padding:16px 13px; }
+.reveal table th { font-size:23px; }
+.reveal .column { flex:0 1 auto; }
+.reveal .columns { align-items:flex-start; }
+.reveal .columns table { margin-left:0; margin-right:0; }
+.reveal h3 { font-size:33px; margin:0 0 23px; }
+.reveal blockquote { background:transparent; border-left:4px solid var(--teal); box-shadow:none; width:auto; padding:3px 25px; margin:0 0 42px; font-size:34px; font-style:normal; }
+.reveal blockquote p { margin:0; }
+.reveal #s2 .column p { font-size:30px; }
+.reveal #s2 .takeaway { margin-top:30px; }
+.reveal #s3 table td:first-child,.reveal #s4 table td:first-child { width:26%; }
+.reveal #s3 .takeaway,.reveal #s4 .takeaway { margin-top:45px; }
+.reveal #s7 table { font-size:27px; }
+.reveal #s7 table td { padding:16px 12px; }
+.reveal #s7 table td:first-child { width:26%; }
+.reveal #s7 .takeaway { margin-top:25px; }
+.reveal #s8 h2 { margin-bottom:30px; }
+.reveal #s8 table { font-size:27px; margin-bottom:25px; }
+.reveal #s8 td,.reveal #s8 th { padding:11px 12px; }
+.reveal #s9 .lead { font-size:29px; margin-bottom:35px; }
+.reveal #s9 p:not(.source):not(.lead) { font-size:30px; }
+.reveal #s10 h2 { font-size:53px; margin-bottom:40px; }
+.reveal #s10 .column p { font-size:29px; line-height:1.4; }
+.reveal #s10 table { font-size:29px; margin-bottom:28px; }
+.reveal #s10 .column .delta { font-size:45px; color:var(--teal); font-weight:600; letter-spacing:-.035em; margin:20px 0 22px; }
+.reveal #s11 table { font-size:27px; }
+.reveal #s11 td { padding:17px 12px; }
+.reveal #s11 > p:not(.source) { font-size:29px; }
+.reveal .cover h2 { font-size:104px; margin-bottom:23px; }
+.reveal .cover .cover-subtitle { font-size:43px; margin-bottom:30px; }
+.reveal .cover .cover-question { font-size:32px; max-width:1120px; color:#c9dfd9; line-height:1.4; }
+.reveal .cover-author { font-size:22px; }
+.reveal .cover-author strong { font-size:29px; }
+.reveal .cover-author p { margin-bottom:10px; }
+.reveal .closing h2 { font-size:35px; margin-bottom:28px; }
+.reveal .closing .closing-statement { font-size:61px; line-height:1.15; margin:0 0 36px; }
+.reveal .closing .columns { gap:65px; }
+.reveal .closing h3 { font-size:29px; color:var(--mint); letter-spacing:-.025em; margin:0 0 20px; }
+.reveal .closing p,.reveal .closing li { font-size:27px; line-height:1.4; margin-bottom:18px; }
+.reveal .closing strong { color:var(--paper); }
+.reveal .closing .source { color:#b5cec7; font-size:18px; }
+.reveal .backup h2 { font-size:46px; margin-bottom:35px; }
+.reveal .backup table { font-size:25px; }
+.reveal .backup td,.reveal .backup th { padding:12px 10px; }
+.reveal .backup p,.reveal .backup li { font-size:27px; }
+.reveal .backup .source { font-size:18px; }
+.reveal .backup pre { font-size:21px; }
+.reveal #b2 table { font-size:24px; }
+.reveal #b3 table { font-size:25px; }
+.reveal #b3 > p:not(.source) { font-size:25px; }
+.reveal #b6 h2 { margin-bottom:25px; }
+.reveal #b6 table { margin-bottom:20px; }
+.reveal #b6 > p:not(.source) { font-size:25px; margin-bottom:20px; }
+.reveal #b6 div.sourceCode { padding:14px 20px; }
+.reveal #b8 img { max-height:310px; }
+
+.reveal #s5 > p { font-size:31px; margin-bottom:28px; }
+.reveal #s5 table { font-size:27px; margin-bottom:28px; }
+.reveal #s5 td { padding:17px 12px; }
+.reveal #s5 td:first-child { width:23%; }
+.reveal #s5 .takeaway { font-size:30px; margin-top:25px; }
+.reveal #s6 > p { font-size:31px; }
+.reveal #s6 li { font-size:31px; margin-bottom:18px; }
+.reveal #s6 .takeaway { font-size:30px; margin-top:35px; }

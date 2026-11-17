@@ -1,411 +1,332 @@
 # Implementation plan — Clickbait Without the Click
 
-Phased plan for **building and running** the project (not the same as course Phase 1–3 checkpoints).
-
-## Context
-
-- **Ground truth:** [`nlp_proposal_v2.tex`](nlp_proposal_v2.tex), [`AGENTS.md`](AGENTS.md).
-- **Repo:** course docs + proposal; experiment pipeline grows task by task (see Progress below).
-- **Research hinge:** paired **C − B** macro-F₁ on **temporal** test (main: train Dec–Feb, val Mar, test Apr); identical split IDs for A/B/C; logistic regression with `class_weight='balanced'`; regularization **C** tuned by randomized search on **validation macro-F₁**.
-- **Constraint:** at most **10** LLM coding tasks; heavy runs (embedding cache, full suites) on a **GPU VM** or shared machine as needed.
-- **Executor** = who runs the LLM agent and **commits**; **Support** = data download, GPU, review, sign-off. Adjusted from the Phase-1 proposal so **Hubert can start Tasks 1–2** before classical/cues (Task 4).
-
----
-
-## Progress (update after each task)
-
-Mark tasks when merged to the team branch. Agents: see [`AGENTS.md`](AGENTS.md) — update this list when a task is finished.
-
-- [x] **Task 1** — Scaffold + config (Hubert)
-- [x] **Task 2** — Dataset + splits (Hubert · Adam support)
-- [ ] **Task 3** — EDA notebook (Mateusz · Adam support)
-- [x] **Task 4** — 12 cues + System A (Hubert · Adam support)
-- [x] **Task 5** — MiniLM cache script (Igor · Mateusz support)
-- [x] **Task 6** — Systems B and C (Igor · Mateusz support)
-- [ ] **Task 7** — PoC runner (Mateusz · Igor support)
-- [ ] **Task 8** — Full experiment orchestrator (Mateusz · Hubert support)
-- [ ] **Task 9** — Analysis scripts (Mateusz · Hubert support)
-- [ ] **Task 10** — Webis-16 stub + README repro (Adam · Igor verify)
-
----
-
-## Blocking necessary human input
-
-Hard prerequisites for agent or merge work on the **Blocks** task. Check when done; add rows if new blockers appear.
-
-| Done | Who | Blocks | Required action |
-|:----:|-----|--------|-----------------|
-| [ ] | **Adam** | Task 2 | Skim-review [`configs/experiment.yaml`](configs/experiment.yaml): `webis17.instances` / `webis17.truth` match your Zenodo unpack paths (`data/raw/instances.jsonl`, `data/raw/truth.jsonl` or adjust YAML). |
-| [x] | **Adam** | Task 2 | Download Webis-Clickbait-17 `clickbait17-train-170630.zip` from Zenodo → unzip under `data/raw/` (not committed; gitignored). *(Done locally for pipeline run; other clones still need the zip.)* |
-| [ ] | **Adam** | Task 2 | Review and **sign off** article-overlap / leakage policy in [`docs/data.md`](docs/data.md) before treating `splits/*.json` as frozen. |
-| [x] | **Hubert** | Task 2 | Run `build_dataset` / `build_splits` locally once Adam’s data is in place; commit manifests. |
-| [ ] | **Adam** | Task 3 | By ~20 Nov: add Webis-16 under `data/raw/webis16/` **or** send Mateusz one sentence (“not available because …”) for the EDA notebook. |
-| [x] | **Igor** | Tasks 6–7 | Full CPU cache shared; Mateusz confirmed the same `--check` result. Measured runtime and memory are saved in [`results/embedding_cache_time.txt`](results/embedding_cache_time.txt). |
-| [x] | **Igor** | Task 7 | B/C trained on `temporal_main`; frozen April metrics and paired predictions are in [`results/bc_temporal_main_test.json`](results/bc_temporal_main_test.json). |
-| [ ] | **Mateusz** | Task 7 | Execute `run_poc.py`; provide slide table (split name, macro-F₁ A/B/C, C−B). |
-| [ ] | **Mateusz** | Task 8 | Run full experiment suite; archive one `results/runs/` folder for reproduction. |
-| [ ] | **Adam** | Task 10 | Fresh-clone README reproduction check (or document fix if it fails). |
-| [ ] | **Igor** | Task 10 | Confirm reproduced PoC numbers match pinned `results/poc_summary.json`. |
-
-**Currently on the critical path:** Adam’s YAML review + **sign-off** on article dedupe policy (`docs/data.md`) → Mateusz Task 3 EDA.
-
----
-
-Use in the Phase 2 report if the team agrees (same workstreams; shifted **who commits** early pipeline code):
-
-| Workstream | Owner | Support | Adjustment |
-|------------|-------|---------|------------|
-| Data and protocol | Adam | Igor | **Hubert commits** Tasks 1–2; Adam owns Zenodo download, leakage sign-off, Webis-16 |
-| Classical NLP and cues | Hubert | Adam | Unchanged; Task 4 after Task 2 |
-| Neural NLP and hybrid | Igor | Mateusz | Unchanged; Tasks 5–6 |
-| Evaluation and analysis | Mateusz | Hubert | Dedicated **Task 3 EDA**; Tasks 7–9 |
-
-LaTeX for report (drop-in replacement for `tab:roles` body — keep caption/label or add a footnote on commit roles):
-
-```latex
-\begin{tabularx}{\columnwidth}{@{}p{1.85cm}p{1.18cm}p{1.14cm}X@{}}
-\toprule
-Workstream & Owner & Support & Main output\\
-\midrule
-Data and protocol & Adam & Igor & Clean joins, leakage-safe splits, external data; \emph{implementation Tasks 1--2: Hubert (commits), Adam (data + review)}\\
-Classical NLP and cues & Hubert & Adam & TF--IDF baseline, cue definitions/ablations\\
-Neural NLP and hybrid & Igor & Mateusz & Frozen MiniLM, embedding and hybrid models\\
-Evaluation and analysis & Mateusz & Hubert & EDA notebook, metrics, uncertainty, errors, reproduction\\
-\bottomrule
-\end{tabularx}
-```
+**Proposal baseline:** [v4.1](NLP_Proposal_v4-1.tex), revised 14 November 2026. **Status:** presentation PoC implemented on `feat/poc`; the remaining full-project work is scoped separately below.
 
----
+The ten tasks below are implementation work packages, distinct from course Phases 1–3. Retain Python 3.11+, `uv`, `pyproject.toml`, `uv.lock`, the existing `src/clickbait/` package and straightforward scripts. CPU suffices for core linear models; GPU is optional for encoding and decision-model experiments.
 
-## Target repo layout
+## Authority and changes from v2
+
+[NLP_Proposal_v4-1.tex](NLP_Proposal_v4-1.tex) is the scientific specification; [nlp_proposal_v2.tex](nlp_proposal_v2.tex) describes the historical implementation. The [change log](../NLP_Proposal_Change_Log_v4-1.tex) explains the revision. [AGENTS.md](AGENTS.md) still points to v2 and contains superseded scientific instructions; align it in Task 1 after plan approval. Course requirements and repository conventions continue to apply.
 
-```text
-pyproject.toml
-uv.lock
-configs/experiment.yaml
-data/raw/                 # gitignored — Zenodo archive
-data/processed/           # cleaned posts table
-splits/                   # immutable JSON manifests
-cache/embeddings/         # gitignored
-src/
-scripts/
-notebooks/eda.ipynb       # Task 3 — course-required EDA
-docs/cues.md
-resources/                # lexicon files for cues
-results/
-```
+| Area | Existing v2 implementation | Required v4.1 change |
+|------|----------------------------|----------------------|
+| Research | Main temporal C−B comparison | H1 controlled April gain; H2 three-window robustness; H3 family mechanisms; secondary H4 context relation gain |
+| Teaser cues | Twelve cues in three groups of four | Replace with Appendix A's twelve cues in four groups of three; retrain C and redo ablations |
+| LR selection | 25 sampled log-uniform candidates | Same prespecified fixed regularization grid and validation budget for A/B/C |
+| Data audit | Aggregate counts; exact teaser/title deduplication | Row-level exclusion ledger, 391-row reconciliation, exact/near-duplicate and cross-corpus audit |
+| Random splits | Article-grouped 70/15/15; group label uses maximum | Main-temporal proportions where possible; majority group label and deterministic ties |
+| Chronology | Three windows already exist | Test-month eligibility N ≥ 1,000; explicit boundary exclusions and versioned final manifests |
+| Context | Excluded from all prediction | Required secondary matched-row A_ctx/B_ctx/C_ctx/D_ctx experiment; primary A/B/C stay teaser-only |
+| External data | Webis-16 collection/stub planned | Public access/licence established in proposal; verify local readiness and evaluate if compatible |
+| Extensions | None | Optional title-only YTClickbait21K and Jeff zero-shot/few-shot/window-specific LoRA |
+| Analysis | Scores, calibration, bootstrap and errors planned | Per-month cue/prevalence shifts, four family ablations and matched-context effects |
+
+## Change-log coverage
+
+All sixteen entries in the change log map to planned work below. This is requirement coverage, not a claim that implementation or report updates are complete. Entries 12–14 and 16 concern literature/reporting as well as code and are explicit delivery requirements in Task 10.
 
-```mermaid
-flowchart TD
-  raw[Webis17 raw JSONL] --> clean[Join clean dedup leakage audit]
-  clean --> splits[Freeze split manifests]
-  splits --> eda[EDA notebook Task 3]
-  splits --> A[System A TF-IDF LR]
-  splits --> enc[MiniLM cache]
-  enc --> B[System B LR]
-  enc --> C[System C cues plus LR]
-  A --> eval[Shared eval and tuning]
-  B --> eval
-  C --> eval
-  eval --> analysis[Bootstrap ablations calibration errors]
-```
+| Change-log item | Plan coverage |
+|-----------------|---------------|
+| 1. Four hypotheses | Scientific contract; Tasks 8–9 |
+| 2. Operational twelve-cue specification | Task 4; four-family ablations in Task 9 |
+| 3. Controlled teaser–article experiment | Required context suite in Task 8; H4 analysis in Task 9 |
+| 4. Optional Jeff family | Optional comparison in Task 10 |
+| 5. Expanded temporal-shift analysis | Tasks 3, 8 and 9 |
+| 6. Optional YTClickbait21K | Title-only external evaluation in Task 10 |
+| 7. Webis-16 provenance / restricted Webis-17 test | Shared data protocol; Tasks 2 and 10 |
+| 8. Monthly pilot / eligibility | Chronological split table; Tasks 2–3 |
+| 9. Explicit random grouping key | Shared split protocol; Task 2 |
+| 10. Reusable leakage audit | Shared leakage policy; Task 2, with external checks in Task 10 |
+| 11. Official labels / annotator disagreement | Scientific contract; label provenance in Task 2 and stratified errors in Task 9 |
+| 12. Corrected SOTA table and discussion | Task 10 report/presentation alignment, including Zhou and Wu corrections |
+| 13. Chronological-evaluation literature | Task 10 report/presentation alignment: Søgaard and Röttger–Pierrehumbert |
+| 14. Substantive distinction from Michaluk et al. | Scientific contract and Tasks 8–9 evidence; explicit contribution discussion in Task 10 |
+| 15. Analysis / reproducibility / accountability | Shared fitting/provenance protocol, ownership and Tasks 8–10 |
+| 16. Formal presentation / attribution / appendices | Task 4 feature documentation and Task 10 report/presentation checks |
+
+## Scientific contract
+
+Predict the released binary `truthClass` from English social-media teasers. Do not derive replacement labels from `truthMean`; preserve `truthJudgments` and `truthMean` for disagreement analysis. Article groups are proxies for articles, not publishers. No publisher-disjoint claim is possible without publisher IDs.
+
+Document the released Webis-17 label construction as specified in v4.1: the modal five-person rating maps 0/.33 to non-clickbait and .66/1 to clickbait, with the fifth judgment breaking multiple-mode ties. This explains label provenance; training still reads the published `truthClass` directly. Webis-16 uses its published three-annotator majority labels, with compatibility checked separately.
+
+| Hypothesis | Controlled comparison | Required evidence |
+|------------|-----------------------|-------------------|
+| H1 | Δ_Apr = macro-F₁(C) − macro-F₁(B), identical April IDs | Point estimate and paired bootstrap 95% CI |
+| H2 | Δ_Feb, Δ_Mar, Δ_Apr versus three grouped-random diagnostics | All window effects, uncertainty and random–temporal differences; random-only gains do not establish robustness |
+| H3 | Full C versus C without each three-cue family | Four family ablations across months, feature distributions/correlations and categorized errors |
+| H4, secondary | macro-F₁(D_ctx) − macro-F₁(C_ctx), identical complete-case IDs | Matched context effects, coverage and teaser-only controls on the same rows |
+
+**Core completion:** D1 audited data/ledger/manifests; D2 A/B/C on three eligible temporal windows and three grouped-random diagnostics, four family ablations, and the matched-context experiment; D3 uncertainty, drift, calibration, errors, compute analysis, report and presentation. A negative cue effect is valid. The first A/B/C PoC is an intermediate milestone. Webis-16 is a compatibility-dependent external diagnostic. YTClickbait21K and Jeff are optional and cannot block core completion.
+
+**Existing test exposure:** April has already been scored under v2, including A and frozen B/C. Preserve that history. Freeze v4.1 cues, grid, audit thresholds and analysis choices before new scoring, using development data only. April remains the designated final test partition, but the revised study must disclose prior v2 exposure and must not describe it as newly untouched. Do not select features, prompts, thresholds or optional runs from April outcomes, or silently invent a replacement test.
 
----
+## Immediate PoC scope — presentation checkpoint
 
-## Phase 1 — Repository scaffold and reproducibility baseline
+**Delivery target:** a working teaser-only A/B/C comparison on **one main temporal window**, plus artifacts for a ten-minute video. This is **less than half of the full project**. Use branch `feat/poc` and plain filenames without proposal-version suffixes.
 
-**Goal:** Anyone can install deps with **uv**, load config paths/seeds — no data required.
+| Package | Deliver now | Evidence |
+|---------|-------------|----------|
+| P1. Data | Reproduce ID joins, cleaning and the 391 title exclusions; verify months and exact teaser/title overlap | ID-only ledger, audit JSON, partition/month counts |
+| P2. Features | Twelve mechanism cues, four family mappings, shared fixed grid, train-only transformations | Cue specification and focused tests |
+| P3. Models | A TF–IDF, B frozen MiniLM, C identical embeddings plus cues | Converged main-window fits, candidate histories, saved models |
+| P4. Evaluation | April A/B/C macro-F₁, C−B, positive P/R/F₁, AP, Brier and confusion matrices | ID-aligned predictions, metrics, measured runtime/memory and reload verification |
+| P5. Presentation artifacts | Monthly prevalence/length charts, result chart/table, confusion matrices, five illustrative prediction examples | Portable PNG/SVG/CSV and notes |
+| P6. Video materials | Twelve timed slides, revised SOTA, exact two-person script, render/recording instructions | `presentation/poc.qmd`, reveal.js HTML, Markdown script and presentation plan |
 
-### Task 1 — LLM agent · **Executor: Hubert** · Support: **Adam**
+**Experiment:** Webis-17 `postText` only; train December 2016–February 2017, validate March, test April. Verified pilot sizes: 11,184 / 3,918 / 3,580. Use balanced L2 LR, fixed `C = [0.01, 0.1, 1, 10, 100]`, smallest-C ties, training-only refit/scalers and the default decision rule. Preserve historical snapshots and do not reuse old fitted scores under the changed cue specification.
 
-**Agent should:**
+**Completion evidence:** one command trains and exports results, another reloads frozen models and recomputes predictions/metrics without fitting. Readable figures and result tables must match these outputs. The script and main-slide timings total ten minutes, with one handoff between two presenters. The team records and submits the video; creating slides does not itself record or submit it.
 
-- Add dependencies with `uv add` (scikit-learn, sentence-transformers, torch, numpy, pandas, matplotlib, pyarrow or jsonlines); commit `pyproject.toml` and `uv.lock` (no `requirements.txt`).
-- Add `configs/experiment.yaml`: `random_seed`, paths (`data/raw`, `data/processed`, `splits/`, `cache/`), model id `sentence-transformers/all-MiniLM-L6-v2`, LR `class_weight: balanced`, randomized-search `n_iter` and `C` distribution (single validation fold per split, not k-fold CV).
-- Add `.gitignore`: `data/raw/`, `cache/`, `__pycache__/`, `.venv/`, large local artifacts.
-- Keep README environment section aligned with uv; full experiment reproduction deferred to Task 10.
-- Minimal `src/` layout and smoke test: `uv run python -c "…"` loads config.
+**Deferred:** other temporal windows, three revised grouped-random runs, family ablations, paired bootstrap/CI, full drift/calibration/error analysis, matched article-context models, external corpora and repeated final evaluation. Jeff/LoRA/YouTube remain optional. Five illustrative examples are not the final commitment to twenty categorized errors. One window provides a preliminary point estimate, not proof of temporal robustness or statistical significance.
 
-**Done when:** `uv sync` succeeds; config loads without error.
+**Limits to disclose:** prior April scoring, title-based article proxies, absent publisher IDs, unfinished near-duplicate audit and the historical collection period. Correct any known exact leak before scoring. Explain any missing external comparison as a concrete deferred check.
 
-**Human — Hubert:** Run this task first; commit as primary author.
+**Delivery progress:** check only after the corresponding evidence is verified; full-project tasks below may remain open after this checkpoint.
 
-**Human — Adam (Support):** Skim-review YAML paths against Webis-17 unpack layout (`instances.jsonl`, `truth.jsonl`) before Task 2.
+- [x] P1 — Raw/processed reconciliation and exact main-split audit
+- [x] P2 — Cue/shared-grid implementation and tests
+- [x] P3 — Main-window A/B/C fits and frozen models
+- [x] P4 — Recomputed metrics/predictions and measured compute
+- [x] P5 — Readable, accurate presentation figures/tables/examples
+- [x] P6 — Rendered Quarto deck and timed two-presenter script
 
----
+Verified checkpoint evidence is in `results/poc/main/`: A/B/C April macro-F₁ 0.747911 / 0.711133 / 0.737411, C−B +0.026278, on 3,580 posts. `reproduction.json` records matching predictions/probabilities/metrics from a second full fit in a fresh locked environment. The relevant suite passes 58 tests. The reviewed presentation has twelve timed slides and a synchronized 1,215-word two-presenter script, with the selected reference style applied. Problem/SOTA occupies the first five minutes, the PoC one minute, and the presenter handoff is at 05:00. The team still needs a timed rehearsal, recording and Teams submission; broader tasks below remain subject to their full acceptance/merge criteria.
 
-## Phase 2 — Data ingestion, cleaning, and split manifests
+## Progress and migration baseline
 
-**Goal:** Frozen dataset row set + named splits matching the proposal (temporal windows + random grouped diagnostics).
+The previous plan marked Tasks 1, 2, 4, 5 and 6 complete for v2. Preserve that credit; unchecked items below mean **v4.1 acceptance is pending**, not that existing work is absent. Mark tasks complete after revised acceptance criteria are met and merged.
 
-### Task 2 — LLM agent · **Executor: Hubert** · Support: **Adam** (data + protocol)
+| Task | Existing evidence to retain | v4.1 status |
+|------|-----------------------------|-------------|
+| 1 | Working uv scaffold/config | Reopen for protocol/configuration and documentation changes |
+| 2 | Cleaned table and six manifests | Reopen for reconciliation, context fields and expanded audits |
+| 3 | EDA notebook previously pending | Pending |
+| 4 | Extractor, System A and tuning modules | Reopen for new cues and fixed grid |
+| 5 | Verified/shared 18,682-row cache with measured CPU run | Reuse implementation; validate revised-data compatibility |
+| 6 | Feature checks, validation runs and frozen April result | Reopen for new cues/grid/data provenance |
+| 7–10 | Integration, suites, analysis and external reproduction previously pending | Pending with expanded scope |
 
-Implement per proposal § Data and § Evaluation:
+- [ ] **Task 1** — v4.1 configuration/protocol (Hubert; Adam review)
+- [ ] **Task 2** — Reconciliation, leakage audit and splits (Adam; Igor review)
+- [ ] **Task 3** — Monthly EDA and context/external readiness (Mateusz; Adam support)
+- [ ] **Task 4** — Exact twelve cues, shared grid and System A (Hubert; Adam review)
+- [ ] **Task 5** — Compatible frozen MiniLM cache (Igor; Mateusz review)
+- [ ] **Task 6** — Revised controlled B/C training (Igor; Mateusz review)
+- [ ] **Task 7** — Reproducible v4.1 A/B/C PoC (Mateusz; Igor review)
+- [ ] **Task 8** — Full suite and matched context models (Igor; Mateusz support)
+- [ ] **Task 9** — Ablations, uncertainty, drift, calibration and errors (Mateusz; Hubert review/ablations)
+- [ ] **Task 10** — External diagnostic, reproduction and delivery (Adam; Igor review)
 
-1. **Load** `instances.jsonl` + `truth.jsonl`, join on ID; keep `postText`, binary `truthClass`, timestamp (month for temporal splits), fields for **article overlap** (document which schema field is used in code or `docs/data.md`).
-2. **Clean:** drop empty teasers; dedupe normalized nonempty teasers (keep **earliest** timestamp); log counts (expect ~19,073 before overlap rules per proposal audit: 54 empty, 411 repeated occurrences).
-3. **Leakage:** detect shared article content across would-be train/val/test; policy in code (e.g. assign all posts sharing an article ID to one partition or drop — **Adam signs off**); audit counts feed Task 3 EDA.
-4. **Splits (JSON under `splits/`):**
-   - **Temporal expanding windows (3):** Dec→Jan→Feb; Dec–Jan→Feb→Mar; Dec–Feb→Mar→Apr (**`temporal_main`**).
-   - **Random grouped (3 seeds):** group by normalized teaser and/or article; no group crosses train/val/test; stratified ratios in manifest metadata.
-5. Export `data/processed/posts.parquet` (or `.csv`) with stable `post_id`.
-6. CLI: `scripts/build_dataset.py`, `scripts/build_splits.py`.
+Historical artifacts: [cache summary](results/embedding_cache.json), [cache measurement](results/embedding_cache_time.txt), [v2 frozen protocol](results/frozen/temporal_main/protocol.json), [April result](results/bc_temporal_main_test.json) and [paired predictions](results/bc_temporal_main_test_predictions.parquet). On 3,580 `temporal_main/test` rows, v2 macro-F₁ was B = 0.710541, C = 0.737422, C−B = +0.026881. These use old cues/randomized selection and are not v4.1 evidence. Do not overwrite snapshots or relabel their numbers.
 
-**Done when:** Scripts run on local data; manifests committed; README notes regeneration commands.
+## Ownership, dependencies and review gates
 
-**Human — Adam (Support):**
+Follow v4.1 accountability: Adam owns data/provenance/Webis-16, Igor reviews; Hubert owns TF–IDF/cues/ablations, Adam reviews; Igor owns MiniLM/B/C protocol, Mateusz reviews; Mateusz owns split checks/uncertainty/calibration/errors, Hubert reviews. Historical scaffold/data commits by Hubert remain credited. Assign context implementation to Igor, with Hubert supporting relation features and Adam checking article availability.
 
-- Download Webis-Clickbait-17 Zenodo archive `clickbait17-train-170630.zip` into `data/raw/` and unzip.
-- Review leakage policy with Hubert before freezing manifests.
+| Gate | Owner / reviewer | Required evidence |
+|------|------------------|-------------------|
+| Before implementation | Team | Approve revised plan |
+| Before data are final | Adam / Igor | Paths verified; row-level reconciliation; documented article/near-duplicate policy; immutable manifest version |
+| Before revised training/scoring | Hubert + Igor / Adam + Mateusz | Appendix A conformance; shared grid; train-only fitting; cache checks and protocol snapshot |
+| Before context scoring | Igor / Mateusz | Identical complete-case IDs; fixed serialization/96-word lead; stop list/NER version; truncation audit |
+| Before Phase 2 submission | Igor / team | Confirm course method-class interpretation for frozen embeddings + LR; B is not a fine-tuned encoder. Optional Jeff supplies another family if feasible |
+| Before final delivery | Adam / Igor | README-only reproduction and consistent report/artifact provenance |
 
-**Human — Hubert (Executor):**
+Critical path after approval: Task 1 → Task 2 pilot reconciliation → Tasks 3/4/5 → Task 6 → Task 7 PoC. Final leakage thresholds/manifests can follow the pilot, but precede definitive Tasks 8–9 runs. EDA starts on provisional data and is refreshed after final auditing. No download or GPU allocation is needed merely to approve this plan.
 
-```bash
-uv run python scripts/build_dataset.py
-uv run python scripts/build_splits.py
-```
+## Shared data and evaluation protocol
 
-- Commit: `splits/*.json`, loader/split code, processed metadata or ID-only exports if full parquet is too large (document in README).
-- Notify Mateusz when Task 2 is merged for Task 3.
+### Data stages and leakage
 
-**Gather for Phase 2 report:** table of N and positive rate overall and **per split**; dedupe and overlap counts.
+1. Use the public labelled Webis-17 archive `clickbait17-train-170630.zip`. Validate unique IDs and join instances/truth by ID, never row order. The restricted official 18,979-post challenge test is excluded.
+2. Retain teaser, timestamp, official label, title, paragraphs and annotator fields. Drop empty teasers; keep the earliest normalized teaser occurrence, using a deterministic ID tie-break. Preserve original case for cues and separate normalization for overlap checks.
+3. Reproduce 19,538 raw → 54 empties removed → 411 repeated teasers removed → 19,073 rows. [Existing aggregate stats](data/processed/dataset_stats.json) attribute 391 further removals to title-based article deduplication, yielding the 18,682-row pilot. This is an explanation in current code/stats, not yet v4.1's row-level reconciliation. Export excluded IDs, retained representative IDs and reasons; verify stage-level positive counts. Do not force final counts to equal the pilot.
+4. Set `article_group_key` to normalized `targetTitle`, falling back to a namespaced record ID. Hash normalized teasers/titles and stable IDs actually present. Add character n-gram similarity or MinHash candidates; review a fixed sample near the threshold on development data and freeze thresholds/sample IDs before test application. Do not invent publisher IDs or target URLs.
+5. At chronological boundaries, keep the earliest eligible occurrence of a repeated article/high-confidence duplicate and exclude later occurrences; never move a future post into training. Record exclusions by window/boundary/reason. Keep random article groups intact and resolve high-confidence duplicate leakage consistently before freezing. Report unconfirmed near matches separately.
+6. Apply the reusable audit across each train/validation/test boundary and Webis-17/Webis-16. Keep Webis-17 training data fixed and exclude overlapping external examples, reporting before/after counts. Apply the same principle to optional YouTube evaluation.
+7. Version datasets/manifests/checksums. Released manifests contain IDs, assignments, opaque/hashed group keys and provenance, not full teaser/title/body text. Keep raw data/large caches gitignored; retain attribution and access dates.
 
-> **Course checkpoint:** Tasks 1–2 and frozen splits must land **before** EDA (Task 3) and before mid-term model training (Tasks 4–7). Target week: **5–11 Nov** (proposal).
+### Chronological and random splits
 
----
+These are **provisional v4.1 pilot counts**, before revised audit exclusions.
 
-## Phase 3 — Exploratory data analysis (course requirement)
+| Manifest | Train | Validation | Test | Pilot sizes (train / val / test) |
+|----------|-------|------------|------|--------------------------------|
+| `temporal_w1_dec_jan_feb` | Dec 2016 | Jan 2017 | Feb 2017 | 3,832 / 3,848 / 3,504 |
+| `temporal_w2_decjan_feb_mar` | Dec–Jan | Feb 2017 | Mar 2017 | 7,680 / 3,504 / 3,918 |
+| `temporal_main` | Dec–Feb | Mar 2017 | Apr 2017 | 11,184 / 3,918 / 3,580 |
 
-**Goal:** Satisfy Phase 2 criterion **2.2** explicitly — not bundled into PoC.
+Require test-month N ≥ 1,000 after cleaning; exclude ineligible windows with a reason rather than merging future months. Record final N/prevalence for every partition. Report context complete-case sizes separately and document any additional eligibility decision before context scoring.
 
-**Required content (project rules / assessment):** label and length distribution; duplicates; **leakage check between splits**; comparison with **at least one other dataset** (Webis-16) **or one clear sentence why not**.
+Keep random seeds 42, 43 and 44. Derive random proportions from the finalized main chronological manifest (pilot 11,184:3,918:3,580, approximately 59.9/21.0/19.2), replacing 70/15/15. Stratify article groups by majority official label; **proposed tie rule: class 0**. Log achieved post-level ratios/prevalence deviations and group counts. Random results diagnose optimism, not future-time robustness.
 
-### Task 3 — LLM agent · **Executor: Mateusz** · Support: **Adam**
+### Fitting, metrics and provenance
 
-**Agent should:**
+- A = word 1–2 + character 3–5 TF–IDF with L2 LR. B = frozen pinned 384-dimensional `all-MiniLM-L6-v2` embeddings + LR. C = exactly B's embeddings + twelve train-standardized cues + LR. All use `class_weight='balanced'` and identical IDs.
+- Replace randomized selection with a fixed grid. **Proposed implementation choice**, since v4.1 omits numeric values: `C = [0.01, 0.1, 1.0, 10.0, 100.0]`, ascending; ties select smallest `C`. Use the same grid/budget for A/B/C, context models and ablations. Each model can select a different best value. Freeze the grid before scoring.
+- Fit vocabulary/IDF/scalers/LR on train only. Retain train-only final refit and the default 0.5 decision rule. Select by each window's validation macro-F₁: January for W1, February for W2, March for W3. The proposal's March-tuning statement applies to the main window. No k-fold CV or test-driven threshold adjustment.
+- Fail on missing/stale features or unconverged fits. Record all candidates and shared solver/iteration changes. Save fitted transforms/classifiers and ID-aligned labels, predictions and probabilities.
+- Primary: macro-F₁ and paired C−B. Secondary: positive precision/recall/F₁, AP with prevalence, Brier, reliability, confusion matrices, wall time and peak memory. Freeze bootstrap resample count/seed before scoring; resample paired instances or article/duplicate clusters where dependence remains. Use identical draws for compared systems; April's 95% CI is primary.
+- Log hardware, actual Python/package versions, lockfile, seeds, code revision, retrieval dates, input/feature/model hashes and measurement procedures. Measure encoding, feature extraction, tuning/training and inference separately; distinguish host RSS and GPU memory. Interpret calibration changes with prevalence; any fitted recalibration uses validation only and is separately labelled.
 
-- **`notebooks/eda.ipynb`** (optional `scripts/eda_export.py` → `results/eda_summary.json`):
-  1. **Labels:** class balance overall and **by calendar month** (temporal drift).
-  2. **Length:** token/character counts for `postText`; summary stats and histograms by class.
-  3. **Duplicates:** empty teasers removed; normalized teaser collisions; compare to proposal audit figures.
-  4. **Leakage across splits:** for each named manifest, cross-split violations (duplicate teasers, shared article groups); tables for the Phase 2 report with **split names on every row**.
-  5. **Other dataset:** if `data/raw/webis16/` exists — compare N, label rate, length, field mapping; else **one prominent sentence** in the notebook: why Webis-16 is not compared yet (collection pending per proposal).
-- Export figures to `results/figures/eda_*`.
+## Task 1 — Configuration and protocol record
 
-**Human — Mateusz:**
+**Executor: Hubert · Reviewer: Adam.** Update `configs/experiment.yaml` and config validation for fixed-grid selection, cue/protocol versions, split eligibility, random proportions, audit/context settings and optional extensions disabled by default. Keep seeds and train-only refit explicit. Record adopted grid/tie rules after approval.
 
-```bash
-uv run jupyter notebook notebooks/eda.ipynb
-# or: uv run jupyter nbconvert --execute notebooks/eda.ipynb
-```
+Align `AGENTS.md`, README and data/cue docs as the corresponding implementation lands. Introduce versioned outputs such as manifest snapshots and separate `results/poc/<run-id>/` outputs; prevent silent v2 reuse/overwrite. Store a machine-readable protocol snapshot before scoring. Preserve historical reproduction via old code revision/hashes.
 
-- Commit notebook + figures + `eda_summary.json` if used.
-- **Gather for report:** EDA subsection with self-contained figure captions; every table states scope/split.
+**Done when:** locked setup/config smoke check work, scientific settings have one source of truth and v2/v4.1 outputs are distinguishable. No experiment run is required.
 
-**Human — Adam (Support):** By ~20 Nov, provide Webis-16 under `data/raw/webis16/` or written “not available” text for notebook §5.
+## Task 2 — Reconciliation, overlap audit and manifests
 
-> **Course checkpoint (2 Dec — Phase 2 report, criterion 2.2):** EDA notebook is a **graded deliverable**. It must be in the merge request even if Webis-16 comparison is deferred with an **explicit one-sentence justification**.
+**Executor: Adam · Reviewer: Igor; Hubert supports existing loader/split code.** Extend `src/clickbait/dataset.py`, `src/clickbait/splits.py`, `scripts/build_dataset.py` and `scripts/build_splits.py`.
 
----
+- Implement the data contract above, including `targetParagraphs`/`truthMean`, validated joins and the exclusion ledger.
+- Add a reusable audit module/CLI for exact/approximate matches, development-sample threshold review and boundary/cross-corpus summaries. Keep global earliest-title filtering traceable; explain differences from the final boundary policy.
+- Generate versioned temporal/random manifests with eligibility, majority strata and main-window proportions. Save checksums, month ranges, excluded IDs/reasons, achieved balance and overlap counts; preserve old manifests.
+- Label pilot/final audit status. A provisional PoC can use a recorded pilot manifest; definitive experiments require the final audited version.
 
-## Phase 4 — Twelve linguistic cues + classical baseline (System A)
+**Done when:** the 391-row difference is reconciled by ID/reason; regeneration is deterministic; prohibited ID/article/high-confidence duplicate overlap is absent; reviewers can trace every count. Final N may differ from 18,682.
 
-**Goal:** Prespecified 12 numeric cues + end-to-end **A** with train-only preprocessing; **C** tuned on validation macro-F₁.
+## Task 3 — Monthly EDA and readiness
 
-### Task 4 — LLM agent · **Executor: Hubert** · Support: **Adam**
+**Executor: Mateusz · Data support: Adam.** Create executable `notebooks/eda.ipynb` and a machine-readable summary; add locked notebook dependencies if needed.
 
-**Agent should:**
+Include exclusion stages, labels and token/character lengths by class/month, exact/near-duplicate/article audit tables, per-partition N/prevalence, the row reconciliation, and per-cue frequency/distributions/correlations/monthly variability with bootstrap intervals. Describe length/topic proxies and prevalence effects without redesigning cues from test labels.
 
-1. **`src/cues.py`:** exactly **12** features in three groups (proposal): length/word structure; punctuation/capitalization; pronoun/forward-reference lexicons (`resources/*.txt`). Document in `docs/cues.md`.
-2. **`src/models/system_a.py`:** word 1–2 + char 3–5 TF–IDF, L2 LR, `class_weight='balanced'`.
-3. **`src/tuning.py`**, **`src/metrics.py`:** randomized search on val macro-F₁ for `C` only; report macro-F₁, P/R/F₁, AP, Brier, confusion matrix. Document protocol: select `C` on validation, fit on train (or train+val if team fixes that in config), report **test** without peeking.
-4. CLI: `scripts/train_system_a.py --split temporal_main` (and other manifest names).
+Reproduce or explain differences from monthly pilot totals: Dec 3,832 (1,012 positive), Jan 3,848 (884), Feb 3,504 (814), Mar 3,918 (908), Apr 3,580 (830). Report usable title/lead coverage and missingness by partition/class. Compare Webis-16 schema, label rates, lengths and overlap if locally ready; otherwise state the concrete obstacle. Generic “collection pending per proposal” is obsolete because v4.1 establishes public access.
 
-**Done when:** `results/system_a_<split>.json` includes split name, tuned `C`, test metrics.
+**Done when:** notebook executes, figures have self-contained scope/split captions and summaries identify data/audit versions. Basic EDA can precede Task 4; refresh cue plots and final split summaries afterward.
 
-**Depends on:** Task 2. Task 3 EDA can run **in parallel** on the same processed data.
+## Task 4 — Exact twelve cues, shared grid and System A
 
-**Human — Hubert:**
+**Executor: Hubert · Reviewer: Adam.** Replace `src/clickbait/cues.py`, lexicons and `docs/cues.md`. Appendix A is authoritative for every token set, phrase, denominator and edge case; keep this order.
 
-```bash
-uv run python scripts/train_system_a.py --split temporal_main
-```
+| Family | # | Cue | Rule/output |
+|--------|---|-----|-------------|
+| I. Referential withholding | 1 | Initial unresolved pointer | Binary first-token rule |
+| I | 2 | Indefinite-referent density | Listed token hits / n |
+| I | 3 | Delayed-revelation frame | Binary full-phrase match |
+| II. Audience involvement | 4 | Direct-address density | Listed token hits / n |
+| II | 5 | Action invitation | Initial verb / “find out” rule |
+| II | 6 | Question hook | Listed initial token and question mark |
+| III. Affective/narrative framing | 7 | Surprise-word density | Listed token hits / n |
+| III | 8 | Epistemic-distance density | Listed token hits / n |
+| III | 9 | Narrative reversal | Binary listed phrase match |
+| IV. Specificity/presentation | 10 | Numbered payoff promise | Integer 1–99 in first two tokens; payoff noun within following four |
+| IV | 11 | Attention punctuation | min(1, (! + ? + ellipsis events) / m) |
+| IV | 12 | Referent-to-anchor imbalance | P / (P + A + 1); capitalized non-initial anchors excluding ALL-CAPS |
 
-- **Report:** cite split name on every metric row (supports 2.3 experiment plan for system A).
+Use NFKC and normalized apostrophes/whitespace; ASCII letter tokens with optional internal apostrophes or digit runs; case-insensitive whole-token matching without stemming; n = max(1, token count), m = max(1, character count); twelve zeros for empty input. Preserve original case for anchors. Version exact Appendix A lexicons; remove old substring semantics. Define four groups of three cues.
 
----
+Update `src/clickbait/tuning.py`, `src/clickbait/models/system_a.py` and `scripts/train_system_a.py` for fixed-grid selection and separate training/validation/scoring. Focused tests cover Unicode/apostrophes, phrase boundaries, empty input, numbered-payoff positions, ellipses, capitalization, column/family order, train-only fitting and equal candidate budgets.
 
-## Phase 5 — Frozen MiniLM cache (System B prerequisite)
+**Done when:** twelve outputs conform to Appendix A and A exports fixed-grid validation history/model. Test scoring happens through frozen PoC/suite evaluation, not implicitly during tuning.
 
-**Goal:** One embedding cache reused by B and C; encoder frozen, never retrained.
+## Task 5 — Compatible frozen MiniLM cache
 
-### Task 5 — LLM agent · **Executor: Igor** · Support: **Mateusz**
+**Executor: Igor · Reviewer: Mateusz.** Retain the pinned encoder revision, normalization, sequence limit, ID/text fingerprints and `scripts/cache_embeddings.py` checks. The v2 cache covers 18,682 teasers, was shared/verified and has measured CPU cost; preserve its provenance.
 
-**Agent should:**
+Check revised IDs/text/encoder settings. Reuse unchanged teaser vectors; regenerate missing/changed entries or create a compatible subset artifact as needed. Record revised manifest coverage without overwriting old provenance. Cue changes alone do not invalidate embeddings. Context serialization/lead caches belong separately to Task 8.
 
-- `scripts/cache_embeddings.py`: `all-MiniLM-L6-v2`, batch encode, save by `post_id` (npz/memmap + id index); `cache/embeddings/meta.json` (package versions from `uv.lock`, batch size, device).
+**Done when:** every revised teaser ID has a finite 384-dimensional vector; B/C load identical aligned vectors; round-trip/sampled direct-encoding checks pass. Measure new encoding costs separately from cache reuse.
 
-**Incremental progress:**
+## Task 6 — Revised controlled B/C training
 
-- [x] ID-indexed cache, round-trip tests, and a seeded 64-post CPU pilot on `temporal_main` training data. Five independently re-encoded posts agree within float32 tolerance.
-- [x] Full-dataset encoding, model/input compatibility checks, and runtime/memory measurement. All 18,682 processed posts and six manifests pass validation; [run summary](results/embedding_cache.json) and [GNU time log](results/embedding_cache_time.txt) record the CPU run.
-- [x] Complete cache shared with Mateusz, who confirmed the same successful result from `uv run --locked python scripts/cache_embeddings.py --check`: 18,682 embeddings verified and six split manifests covered.
+**Executor: Igor · Reviewer: Mateusz.** Adapt `src/clickbait/models/neural.py`, `scripts/check_neural_features.py`, `scripts/train_neural.py` and `scripts/evaluate_neural.py` for new cues/grid and versioned artifacts.
 
-**Human — Igor (CPU or GPU machine):**
+B has 384 embedding columns; C has the identical columns plus twelve cues. Fit only C's cue columns with a train-only scaler. Train/validate without test-label access; export models/scaler, cue order, all candidate scores/convergence, input hashes and aligned validation predictions. New frozen evaluations must validate the revised protocol rather than bypass v2 hash checks.
 
-1. Sync repo + `data/processed/` to the execution machine; keep the cache gitignored and share it through team storage or rsync.
-2. Run the full cache under `/usr/bin/time -v` on the chosen device; use the [README commands](README.md#frozen-minilm-cache-task-5) for generation, measurement, and validation. `--sample-size` selects a separate training-only pilot.
-3. Verify five random IDs → embedding shape `(384,)`.
-4. **Gather for report (criterion 2.7):** paste **measured** wall time and max RSS from `time -v` — not estimates.
+**Done when:** revised main-window B/C validation succeeds; saved models reproduce probabilities; scaler statistics match train; IDs/grid/embedding values agree; protocol snapshot is ready for Task 7. Retrain both B/C because grid/data may change even when vectors are reused.
 
-> **Course checkpoint (18 Nov — mid-term PoC):** Embedding cache should exist by **~11 Nov** (proposal week) so Tasks 6–7 can report B/C numbers.
+## Task 7 — First reproducible v4.1 PoC
 
----
+**Executor: Mateusz · Reviewer: Igor.** After Tasks 1/2/4/5/6, add `scripts/run_poc.py` to coordinate a recorded `temporal_main` A/B/C run, check compatibility and export versioned `poc_summary.json`, predictions and a slide table.
 
-## Phase 6 — Neural baselines B and C
+Freeze protocol before scoring. Table fields: proposal/protocol/data versions, split/partition, test N/prevalence, A/B/C macro-F₁, C−B and measured runtime/memory. Label pilot status until final leakage auditing; never mix v2 A/B/C with revised scores. Add a README reproduction command. This first PoC does not depend on context or optional models.
 
-**Goal:** B = embeddings + LR; C = embeddings + train-fitted scaled cues + LR; same tuning protocol as A.
+**Done when:** one command produces a real-data three-system result with auditable artifacts and measured cost. Immediate delivery additionally includes packages P1–P6 above: basic EDA/audit, slide-ready artifacts, a timed presentation and model reload verification. Confidence intervals and full error analysis are deferred. The immediate delivery priority advances the revised proposal's original three-way PoC target of 26 November–2 December; existing v2 results remain historical evidence until replaced by a completed, clearly labelled v4.1 pilot.
 
-### Task 6 — LLM agent · **Executor: Igor** · Support: **Mateusz**
+## Task 8 — Full suite and matched context experiment
 
-**Agent should:**
+**Executor: Igor · Support/review: Mateusz; Hubert supports relation cues; Adam checks completeness.** Add `scripts/run_experiments.py` using shared training/evaluation functions. Definitive runs require final audited manifests.
 
-- Load cache by `post_id`; fail fast if missing.
-- `StandardScaler` on cues (train only); concatenate for C.
-- Same randomized **C** search on validation macro-F₁ as A.
-- CLI: `scripts/train_neural.py --system B|C` (or separate scripts).
+**Primary suite:** A/B/C × three eligible temporal windows and three random seeds. Export selected regularization, all candidate histories, predictions, metrics, hashes and per-stage measured cost. Include ≥3 runs with spread or justify why deterministic LR repeats have no meaningful stochastic spread. Different windows are not repetitions of one experiment; report window variation and random-seed variation separately.
 
-**Incremental progress:**
+**Required secondary context suite:** select usable teaser/title/paragraph rows; concatenate non-empty paragraphs in order and take the first **96 word tokens** as lead. Pin tokenization and field-labelled teaser/title/lead serialization before scoring; audit MiniLM truncation. Intersect base manifests with complete-case IDs without repartitioning. All four models share serialized input, rows, grid and train-only fitting:
 
-- [x] ID-aligned float64 B/C feature construction and train-only cue scaling. Unit tests and `scripts/check_neural_features.py --split temporal_main` verify the training/validation matrices, embedding equality, and cue order.
-- [x] Shared tuning history and convergence handling; B training/validation runner with model and prediction exports. All 25 candidates converged on CPU; `temporal_main/val` macro-F₁ is 0.716718. The [summary](results/system_b_temporal_main_validation.json) and [GNU time log](results/system_b_temporal_main_validation_time.txt) record the run; reloading the classifier reproduces the exported predictions and probabilities exactly.
-- [x] C training through the shared protocol; fitted cue scaler, classifier and prediction exports. All 25 candidates converged on CPU; `temporal_main/val` macro-F₁ is 0.745811. The [summary](results/system_c_temporal_main_validation.json) and [GNU time log](results/system_c_temporal_main_validation_time.txt) record the run. Saved scaler statistics match the training cues; the reloaded pipeline reproduces exported probabilities exactly. B/C input hashes, validation IDs and tuning settings agree.
-- [x] Frozen `temporal_main` B/C evaluation, measured runtime/memory, and README reproduction commands. The [protocol and models](results/frozen/temporal_main/protocol.json) were committed before April scoring. On 3,580 `temporal_main/test` posts, macro-F₁ is B = 0.710541 and C = 0.737422; paired C−B = +0.026881. The [summary](results/bc_temporal_main_test.json), [paired predictions](results/bc_temporal_main_test_predictions.parquet) and [GNU time log](results/bc_temporal_main_test_time.txt) record the result. Direct LR/scaling calculations reproduce every prediction and probability; all 35 tests pass.
+| System | Features |
+|--------|----------|
+| A_ctx | TF–IDF of serialized teaser/title/lead + LR |
+| B_ctx | Frozen MiniLM of that same serialization + LR |
+| C_ctx | B_ctx + twelve teaser-only cues |
+| D_ctx | C_ctx + three relation cues |
 
-**Human — Igor:**
+Implement Appendix B: R1 = lexical intersection size / max(1, teaser content-word type count), with lowercasing/fixed English stop list; R2 = teaser entities absent from lead / max(1, teaser entity count), using normalized case-insensitive spaCy person/organization/location/product entity sets; R3 = (1 + cosine(teaser, lead)) / 2 using the same pinned, unit-normalized MiniLM. Empty teaser content/entity sets yield zero; missing leads are excluded, not imputed. Pin spaCy package/language-model artifact and stop list. Key separate context/lead caches by exact text/encoder; scale added scalar features on train only.
 
-```bash
-uv run --locked python scripts/train_neural.py --system B --split temporal_main
-uv run --locked python scripts/train_neural.py --system C --split temporal_main
-uv run --locked python scripts/evaluate_neural.py
-```
+Run context comparisons across eligible chronological windows. Report D_ctx−C_ctx for H4 and C_ctx−B_ctx for teaser-cue value with context. Train/tune teaser-only A/B/C controls on the **same complete-case training/validation rows** and evaluate on the same test rows, so context effects do not confound training availability. Label full-core-model subset scores separately if included. Report coverage/prevalence/selection effects. Relation cues never enter primary C or text-only external tests.
 
-Training commands evaluate validation only. The evaluator uses the committed frozen models
-and produces April test metrics and paired predictions without fitting. This completes
-Task 6 for the current manifest and title-based article proxy; Adam's policy review remains
-pending above. Next: Task 7 PoC integration, then Tasks 8–9 experiments and analysis.
+**Done when:** a complete core folder contains primary/context metrics and paired predictions, matching IDs/protocol snapshots and measured costs. Optional experiments remain separate suites.
 
----
+## Task 9 — Ablations, uncertainty, drift, calibration and errors
 
-## Phase 7 — Proof-of-concept runner (mid-term numbers)
+**Executor: Mateusz · Reviewer: Hubert; Hubert implements family ablations, Adam reviews them.** Analyze frozen Task 8 outputs using small scripts such as `bootstrap_paired.py`, `ablate_cues.py`, `calibration_plots.py` and `export_errors.py`.
 
-**Goal:** Course **2.1** — end-to-end PoC on real data with at least **one reported number** (code-only or number-only → half credit).
+- April paired C−B 95% CI; all Δ_t effects with uncertainty; explicitly defined random–temporal contrasts with different test populations visible.
+- Four leave-one-family-out C variants, each removing three cues, retrained/tuned on identical train/validation IDs and grid. Compare family effects by month; no test-driven lexicon changes.
+- Per-cue frequencies/distributions/correlations/monthly stability with bootstrap variability; relate effects to prevalence and length/topic proxies without claiming time is the only cause.
+- Brier/reliability, AP with prevalence, confusion matrices and measured cost; explain class-weighted probabilities and prevalence shifts in calibration interpretation.
+- Secondary context D_ctx−C_ctx and C_ctx−B_ctx paired effects/uncertainty and matched teaser-only controls, separately from H1–H3.
+- ≥20 manually checked misclassified/model-disagreement examples in named categories, including low/high annotator agreement. Inspect cautious-reporting terms, pointers, numbered promises, anchor proxies and context/NER failures where actually observed; do not assert unobserved error types.
 
-### Task 7 — LLM agent · **Executor: Mateusz** · Support: **Igor**
+**Done when:** H1–H4 can be assessed, including negative/inconclusive outcomes; error categories, uncertainty procedures and self-contained captions are report-ready. Name data version/split/partition on every figure/table.
 
-**Agent should:**
+## Task 10 — External evaluation, reproduction and delivery
 
-- **`scripts/run_poc.py`:** run A, B, C on **`temporal_main`** (optional second split); write `results/poc_summary.json` and a markdown table for slides.
+**Executor: Adam · Reviewer: Igor; all contribute to reports/video.** Complete `scripts/eval_webis16.py` for v4.1's Webis-16 source: Zenodo record 3251557, `corpus-webis-clickbait-16.zip`, CC BY 4.0. Public availability is established in the proposal; local acquisition/schema checks remain. Verify English tweet-text mapping, majority-vote labels and overlap; log retrieval/exclusions/final N/prevalence.
 
-**Depends on:** Task 4 (A), Task 5 (cache), Task 6 (B/C).
+Evaluate with unchanged Webis-17 main-training A/B/C selected on March. Do not fit transforms, retune thresholds, alter labels or train on Webis-16. If incompatible/unavailable locally, document the precise reason and unperformed comparison. Exclude context models from this text-only test.
 
-**Human — Mateusz (lead) + team:**
+**Optional YTClickbait21K:** inspect `main_dataset.csv` and video dates from the proposal's Figshare source. Evaluate English titles only with unchanged Webis-trained A/B/C after overlap checks. Descriptions/thumbnails/channels/metadata are not inputs. Report platform/annotation confounds; later publication does not prove all videos postdate Webis or isolate temporal shift.
 
-```bash
-uv run python scripts/run_poc.py
-```
+**Optional Jeff-Qwen3.5:** Igor leads, Mateusz reviews, once the core path is secure. Use Jeff's native score/choice interface: zero-shot, fixed balanced training-only few-shot demonstrations per window, LoRA if feasible. Pin model/code revision, label descriptions, prompt, option order, demonstration IDs and probability extraction before evaluation. Each adapted window needs a separate adapter; explicitly label main-only LoRA. No Jeff–cue fusion. Record measured compute/skipped variants; optional work must not delay core/context delivery.
 
-- Slides/video: **split name**, macro-F₁ for A/B/C, point estimate **C−B**.
+README must cover locked setup, data/audit/manifests, cache construction/reuse, one-command pinned PoC reproduction and full-suite/analysis commands. Distinguish v2 snapshots, v4.1 pilot/final core and optional results. Adam performs clean-environment README-only reproduction; Igor checks IDs/hashes/numbers with stated numeric tolerances where hardware matters.
 
-> **Course checkpoint (18 Nov):** Mandatory **mid-term presentation** + **10-minute video** (SOTA recap + PoC **pipeline** + at least one result). Live demo from loader through one trained split is acceptable.
+**Report and presentation alignment — Igor leads, all review.** Apply these requirements to the next report/video updates, including Phase 2, rather than waiting for final delivery:
 
-> **Course checkpoint (13 Nov):** Mandatory **proposal feedback** meeting — no repository deliverable.
+- Carry forward v4.1's corrected SOTA evidence: name dataset and train/dev/test/CV conditions, input modalities and metric averaging for every quoted score; keep unspecified averaging explicit. Credit Zhou for the winning challenge system, replace the insufficiently documented Yu entry with Wu et al. (2020), and connect title–body interaction work to the secondary context experiment. Do not rank unlike published results as a common benchmark.
+- Incorporate Søgaard et al. (2021) and Röttger and Pierrehumbert (2021) into the motivation and interpretation of chronological evaluation; retain the distinction between temporal and publisher/source separation.
+- Explain the distinction from Michaluk et al. through matched embeddings/classifiers/tuning, chronological effects, mechanism-level ablations, leakage audits and matched context relations. Support claims with the corresponding evidence; do not frame model substitution or isolated pronoun/punctuation patterns as the scientific novelty.
+- Define abbreviations on first use, check citation/source links and published versions, preserve the course-template attribution to Anna Wróblewska and the ACL 2015 template, and include readable exact cue/relation appendices consistent with implemented lexicons, formulas and edge cases.
 
-> **Course checkpoint (25 Nov):** Individual **Q&A questions** for other teams (§5a, up to 5 pts) — prepare during or after mid-term.
+**Done when:** one result independently reproduces, Webis-16 is evaluated or its obstacle documented, and core artifacts/course submissions are complete. Optional suites are not completion requirements.
 
----
+## Calendar and course deliverables
 
-## Phase 8 — Full experiment matrix and measurement
+These follow v4.1 planning targets, not claimed completion. Context is scheduled explicitly because it belongs to D2 although the proposal's weekly table gives it no separate row.
 
-**Goal:** All temporal windows + random grouped splits; **measured** runtime/memory; `--repeat 3` for Phase 3 spread.
+| Period | Accountable lead | Target |
+|--------|------------------|--------|
+| 4–18 Nov 2026 | Igor | Source/feedback audit; PoC evidence/first cue specification; 18 Nov mid-term presentation and 10-minute video |
+| 19–25 Nov | Adam | Monthly EDA, 391-row ledger reconciliation/article audit; 25 Nov individual Q&A |
+| 26 Nov–2 Dec | Hubert | Exact cues/v4.1 three-way PoC; Phase 2 EDA/report/MR/reproduction |
+| 3–9 Dec | Adam | Development-reviewed duplicate thresholds/final splits; freeze context selection/serialization |
+| 10–16 Dec | Igor | Matched temporal/random A/B/C runs and required context suite |
+| 17–23 Dec | Mateusz | Four family ablations, uncertainty/drift/calibration, ≥20 errors and context interpretation |
+| 24–30 Dec | Adam | Contingency/external compatibility and evaluation; optional work only if schedule allows |
+| 31 Dec–6 Jan 2027 | Hubert | Independent reproduction/report checks; Adam runs README check, Igor verifies |
+| 7–13 Jan | Igor | Final paper, source/MR, video/question session; all review |
 
-### Task 8 — LLM agent · **Executor: Mateusz** · Support: **Hubert**
+**Phase 2, 2 December:** real-data PoC plus number; EDA with leakage and another dataset or precise absence reason; method classes/hyperparameters/splits/metrics; README reproduction; measured runtime/memory; revised report/MR; rebuttal to every supervisor and meeting #8 Q&A point with checkable locations. Final audit freezing is scheduled after Phase 2, so identify pilot status and remaining audit work.
 
-**Agent should:**
+**Phase 3, 13 January 2027:** full core evidence/interpretation; ≥3 runs with spread or justified deterministic exception; ≥20 categorized errors; reproducibility/measurement procedures; limitations with consequences; rebuttal through meeting #13 Q&A. Every phase report needs actual contribution tasks/hours consistent with git, formal LLM-use declaration and data statement. Preserve folder `kolodziej_kowalski_kaniasty_iwaniuk` and course templates.
 
-- `scripts/run_experiments.py --suite main`: all split manifests, systems A/B/C; log validation-best `C`, test macro-F₁ and secondary metrics; **wall time** and **peak RSS** per run.
-- Save predictions for Task 9, e.g. `results/runs/<timestamp>/predictions_<system>_<split>.parquet` (document exact names in script help).
-- Output: `results/runs/<timestamp>/metrics.jsonl` + aggregated CSV.
+## Completion checks and limits
 
-**Human — Mateusz (lead):**
-
-```bash
-/usr/bin/time -v uv run python scripts/run_experiments.py --suite main
-# Phase 3 final: uv run python scripts/run_experiments.py --suite main --repeat 3
-```
-
-- Archive one run directory for Adam’s reproduction check (Task 10).
-- **Gather for report:** one table per **named split**; spread across the three temporal windows; contrast random vs temporal diagnostics.
-
-> **Course checkpoint (2 Dec — Phase 2 submission):** Merge request with source code; **EDA (2.2) + PoC (2.1)**; experiment plan in report **(2.3)**; README reproduction **(2.6)** — Task 10 may land the same week; **measured** runtime/memory **(2.7)** not estimates; contribution table **(2.8)** + LLM declaration + rebuttals **(2.4)**; submission folder `kolodziej_kowalski_kaniasty_iwaniuk` (order fixed at Milestone 1).
-
----
-
-## Phase 9 — Analysis layer
-
-**Goal:** Proposal evaluation plan for Phase 3: paired **C−B** uncertainty, cue ablations, calibration, error analysis.
-
-### Task 9 — LLM agent · **Executor: Mateusz** · Support: **Hubert**
-
-**Agent should:**
-
-- **`scripts/bootstrap_paired.py`:** paired bootstrap on **April test** (`temporal_main`) for C−B macro-F₁ CI.
-- **`scripts/ablate_cues.py`:** drop cue groups (length / punctuation / lexicon) one at a time on system C.
-- **`scripts/calibration_plots.py`:** reliability diagrams + Brier for B vs C on main test.
-- **`scripts/export_errors.py`:** export at least **20** misclassified examples with text, gold label, A/B/C predictions; include **model disagreement** cases and **annotator-agreement strata** when available from truth fields; heuristic category column for manual refinement.
-- Figures under `results/figures/`.
-
-**Human — Mateusz / Hubert:** Run after Task 8 predictions exist; refine named error categories in exported CSV for the final report (≥20 categorized errors required for Phase 3).
-
-**Gather for report:** bootstrap CI wording for abstract; ablation table with split named; self-contained calibration captions.
-
----
-
-## Phase 10 — Secondary corpus, README reproduction, freeze
-
-**Goal:** Webis-16 transfer diagnostic; stranger reproduces **one** pinned result from README alone.
-
-### Task 10 — LLM agent · **Executor: Adam** · Support: **Igor** (repro verify)
-
-**Agent should:**
-
-- **`scripts/eval_webis16.py`:** train on Webis-17 main train only, evaluate on Webis-16 if present; else skip with documented message (transfer diagnostic, not second training corpus).
-- **README:** data download, `uv sync`, build dataset/splits, cache embeddings, **one command** reproducing pinned `results/poc_summary.json` (or equivalent); cite `uv.lock`, Python version, seed.
-
-**Human — Adam:**
-
-- Place Webis-16 under `data/raw/webis16/` or document absence in the Phase 2 report.
-- Fresh clone: follow README only; Igor confirms numbers match.
-
-> **Course checkpoint (13 Jan 2027 — Phase 3):** Final report + presentation video + merge request; **≥3 runs** with spread or justified exception; **≥20 categorized errors**; limitations with consequences; rebuttals through meeting **#13** Q&A; reproducibility (seeds, versions, commands) for every reported number.
-
----
-
-## Suggested calendar
-
-| When | Who | Focus |
-|------|-----|--------|
-| Now – 11 Nov | Hubert | Tasks 1–2, then 4 when splits frozen |
-| After Task 2 | Mateusz | Task 3 EDA (parallel with Hubert Task 4) |
-| 5–11 Nov | Igor | Task 5 cache (+ human GPU) |
-| 12–18 Nov | Igor, Mateusz | Tasks 6–7 + **18 Nov video** |
-| 19 Nov – 2 Dec | Mateusz, Adam | Tasks 8, 10; Phase 2 report |
-| Dec – Jan | Mateusz, Hubert | Task 9; Phase 3 final |
-
----
-
-## Risks
-
-- Do not claim publisher-generalization — label metrics **temporal** or **random grouped**.
-- Minimum viable outcome: valid controlled **A/B/C** comparison even if cues do not help on temporal test (proposal § Deliverables).
-- EDA must compare Webis-16 **or** state explicitly why not (one clear sentence minimum).
+- Verify changed cue semantics, joins/exclusions, split eligibility/group rules, cache compatibility, train-only fitting, shared tuning and matched context rows with focused tests. Run relevant existing tests; old tests passing does not prove new cue conformance.
+- Preserve historical artifacts and regenerate dependent features/models when inputs change. Embedding reuse does not authorize reusing fitted classifiers/scores under a new protocol label.
+- Label results temporal or grouped-random. Historical five-month coverage, topic/prevalence confounds, subjective labels, pretrained exposure and prior April scoring limit interpretation.
+- Measure/discuss complete-case selection, title proxies, NER errors, semantic false matches and truncation. Context findings do not establish performance without articles or on text-only external data.
+- Spoiler generation, multilingual modelling, browser extensions, live scraping and factual verification remain outside scope. Article leads are used only in the separately labelled consistency experiment.

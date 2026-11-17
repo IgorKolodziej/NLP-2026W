@@ -1,0 +1,49 @@
+{
+  "source_run": "results/poc/main",
+  "summary_sha256": "e1aeb7bb67eb92f713d964639e0d81ab2a95404a51cf4b04ead2751accd26d64",
+  "prediction_sha256": "e2dd7d0e764603a38ae8d9297171bf398bcf1332e6c8659c2c4e64890a41085e",
+  "test_n": 3580,
+  "cue_model_corrects_baseline_errors": 162,
+  "cue_model_introduces_errors": 80,
+  "illustrative_example_ids": [
+    "848309004287791106",
+    "847999744609832960"
+  ],
+  "selection": "Two illustrative held-out prediction changes, one improvement and one introduced false positive; not an error taxonomy or causal attribution.",
+  "license": "Webis-17 CC BY 4.0",
+  "figures": {
+    "monthly_prevalence.png": {
+      "source": "data/processed/posts.parquet",
+      "rendered_by": "presentation/render_figures.py",
+      "sha256": "38f0e24472bff21594e9e9b7e534de9d2421851cbbaaa5dde94adbb84f21806a",
+      "style": "supplied CSS/QMD warm-paper palette"
+    },
+    "test_macro_f1.png": {
+      "source": "results/poc/main/summary.json",
+      "rendered_by": "presentation/render_figures.py",
+      "sha256": "c1178c24bcd299fb43e31de1faf9fe6f17316310e9dcb572fd4ac56eb20bdb98",
+      "style": "supplied CSS/QMD warm-paper palette"
+    },
+    "teaser_length.png": {
+      "source": "results/poc/main/artifacts/teaser_length.png",
+      "sha256": "62f954ceae0412440c71f2292c9bc03c07763f9c5b9c24deaf819ebe42285f3c"
+    },
+    "confusion_matrices.png": {
+      "source": "results/poc/main/artifacts/confusion_matrices.png",
+      "sha256": "4a6290365210e7a12c8eec2d1402bec75b22780907b9a2e17176392230eb1562"
+    },
+    "results_table.png": {
+      "source": "results/poc/main/summary.json",
+      "rendered_by": "presentation/render_figures.py",
+      "sha256": "b00861ef30a16fb64612b171125d0568f609b9ea1134f0e1ffd7bb5e7362dfb8",
+      "style": "supplied CSS/QMD warm-paper palette"
+    }
+  },
+  "style_reference": {
+    "font": "Inter Seminar",
+    "body_background": "#faf9f5",
+    "cover_background": "#102d36",
+    "teal": "#007f78",
+    "orange": "#b76831"
+  }
+}

@@ -12,3 +12,4 @@ cache/
 
 # large local run artifacts (keep small committed summaries under results/ if needed)
 results/runs/
+results/standalone/runs/

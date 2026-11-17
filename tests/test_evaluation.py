@@ -32,6 +32,7 @@ class FrozenEvaluationTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.cfg = load_config()
+        self.cfg["paths"]["results"] = "results"
         self.cfg["embedding_model"] = "fixture-model"
         self.cfg["embeddings"]["revision"] = "fixture"
         rng = np.random.default_rng(42)

@@ -88,10 +88,10 @@ def train_neural_validation(
         "n_train": len(train_posts), "n_val": len(val_posts), "n_features": x_train.shape[1],
         "best_C": best_c,
         "tuning": {
-            "protocol": "randomized search on validation macro-F1; refit on train only",
+            "protocol": "fixed grid on validation macro-F1; refit on train only",
             "validation_macro_f1_at_best_C": best_score,
-            "n_iter": int(cfg["randomized_search"]["n_iter"]),
-            "tie_break": "first sampled candidate",
+            "n_iter": len(candidates),
+            "tie_break": "smallest_C",
             "candidates": candidates,
         },
         "classifier_parameters": classifier.get_params(),

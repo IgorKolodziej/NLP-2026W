@@ -1,0 +1,6 @@
+post_id,post_text,label,y_pred_A,y_pred_B,y_pred_C,p_clickbait_A,p_clickbait_B,p_clickbait_C
+847968756605132800,23 office workers who have perfected the art of sarcasm,1,0,1,1,0.4563874626149657,0.965070149901708,0.9239596480554451
+847999744609832960,"Here are the best TV shows and movies coming to Netflix, Amazon and more in April",0,1,0,1,0.8059195019809912,0.2479155907548595,0.5828452823448553
+848000230561894400,#Crayola drops hints about dandelion crayon's replacement,0,0,1,1,0.12937095962214737,0.7525941164461568,0.5398708391908762
+848007065629065216,Survey of computer developers shows gender divide over diversity,0,0,1,1,0.03467561809966514,0.7196792901234463,0.5664575287609563
+848022115840393216,The history behind the web's longest-running episodic web series:,1,0,1,1,0.1828820952826704,0.9312669386626965,0.8772247069725911

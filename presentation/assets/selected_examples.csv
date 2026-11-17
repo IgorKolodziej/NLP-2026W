@@ -1,0 +1,3 @@
+post_id,post_text,partition,y_true,y_pred_A,p_clickbait_A,y_pred_B,p_clickbait_B,y_pred_C,p_clickbait_C,initial_pointer
+848309004287791106,These cities will overthrow Silicon Valley as the new centers for tech in coming years:,test,1,0,0.2674726185571003,0,0.44380139997764784,1,0.6689669503857707,1.0
+847999744609832960,"Here are the best TV shows and movies coming to Netflix, Amazon and more in April",test,0,1,0.8059195019809912,0,0.2479155907548595,1,0.5828452823448553,1.0

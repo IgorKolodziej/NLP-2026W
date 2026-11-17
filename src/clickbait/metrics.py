@@ -13,7 +13,7 @@ from sklearn.metrics import (
 
 
 def macro_f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    return float(f1_score(y_true, y_pred, average="macro", zero_division=0))
+    return float(f1_score(y_true, y_pred, labels=[0, 1], average="macro", zero_division=0))
 
 
 def binary_metrics(y_true: np.ndarray, y_prob: np.ndarray, y_pred: np.ndarray) -> dict[str, Any]:

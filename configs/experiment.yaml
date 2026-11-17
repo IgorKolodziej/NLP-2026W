@@ -5,7 +5,7 @@ paths:
   data_processed: data/processed
   splits: splits
   cache: cache
-  results: results
+  results: results/standalone
 
 webis17:
   # from clickbait17-train-170630.zip → clickbait17-validation-170630/*.jsonl
@@ -31,14 +31,14 @@ logistic_regression:
   max_iter: 1000
   solver: lbfgs
 
-randomized_search:
-  n_iter: 25
+grid_search:
   scoring: macro_f1
-  # one validation fold per split manifest; not k-fold CV
-  C:
-    distribution: loguniform
-    low: 0.01
-    high: 100.0
+  C: [0.01, 0.1, 1.0, 10.0, 100.0]
+  tie_break: smallest_C
+
+protocol:
+  status: pilot
+  min_test_size: 1000
 
 training:
   # select C on validation; final LR fit on train only; test metrics never used for tuning
