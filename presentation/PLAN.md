@@ -228,7 +228,7 @@ Preserve the approved CSS/QMD reference style: warm paper slides, dark teal cove
 
 Implementation follows the approved sequence:
 
-1. Eleven slides follow the storyboard. The deck ends at the closing slide, detailed supporting evidence remains in the proposal, documentation and PoC artifacts.
+1. Twelve slides follow the storyboard. The deck ends at the closing slide, detailed supporting evidence remains in the proposal, documentation and PoC artifacts.
 2. The audited script has 1,215 spoken words with a 05:00 handoff and contiguous 600-second timing windows. Speech is synchronized with slide notes.
 3. The reveal.js HTML embeds its runtime, style, font and figures. Rendered slides are reviewed for fit, readability, citations and evidence.
 

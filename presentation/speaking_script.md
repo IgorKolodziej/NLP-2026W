@@ -56,7 +56,7 @@ Wu and colleagues study title style and title-body relationships using attention
 
 How we split the data matters. Søgaard and colleagues show that random splits can give optimistic estimates of performance on new samples. We plan to compare later-month tests with random splits that keep posts linked to the same article together.
 
-Röttger and Pierrehumbert found that adapting a model to a time period gave no extra classification benefit beyond adapting it to the type of text. We therefore need to measure whether language changes affect our results.
+Röttger and Pierrehumbert found that extra pretraining on text from a specific period did not improve their classifier beyond pretraining on the same type of text. We therefore need to measure whether language changes affect our results.
 
 RoCliCo tests articles from unseen publishers. Our data lacks publisher IDs, so later-month tests cannot establish that kind of transfer. Presenter Two will now explain our study.
 
@@ -88,7 +88,7 @@ The proof of concept saves predictions for all three models on the same test pos
 
 On April, A scores macro F-one zero point seven four seven nine. B scores zero point seven one one one. C scores zero point seven three seven four. Adding cues to B gives about two point six three percentage points.
 
-So cues improve B in this run, but A remains strongest. We have tested one time window and have not calculated a confidence interval for the difference. April was excluded from training and model selection, but the team had already seen earlier pilot results on it. These findings are preliminary.
+So cues improve B in this run, but A remains strongest. This PoC covers one time window, and we have not calculated a confidence interval for the difference. April was excluded from training and model selection, but the team had already seen earlier pilot results on it. These findings are preliminary.
 
 **[Advance to slide 11 at 08:10. Pause briefly while the audience reads the slide.]**
 
