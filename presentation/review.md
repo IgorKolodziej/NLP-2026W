@@ -1,6 +1,14 @@
 # Presentation review
 
-## Factual audit - 17 November 2026
+## Revised recording deck
+
+- The [storyboard](PLAN.md) places the controlled comparison before the presenter handoff and gives the April result and paired examples 1 minute 50 seconds. Twelve spoken slides total 600 seconds. The three appendix slides are for Q&A.
+- The [speaking script](speaking_script.md) and rendered presenter notes contain the same 1,111 spoken words. The handoff is at 05:00. The team still needs a joint rehearsal.
+- The [rendered deck](poc.html) was checked offline at 1600×900 and 1280×720 for clipping, embedded resources and slide order.
+- Cleaning counts, median lengths, exact split overlap, macro-F₁ and paired error changes were checked against the saved data and predictions. Both April examples fire the opening-pointer cue. The March example fires the question hook and has one direct-address match among seven tokens.
+- The recording deck keeps the earlier-April-exposure disclosure and treats the second Phase 2 method class as open. The completed PoC, planned study and optional extensions have distinct status labels.
+
+## Factual audit of the previous deck · 17 November 2026
 
 The revised speech agrees with the proposal's scientific design and the saved main-window experiment. Numerical claims passed model-reload verification. Planned robustness, uncertainty, family and context experiments are explicitly described as unfinished.
 
@@ -46,7 +54,7 @@ The Röttger-Pierrehumbert summary specifically concerns extra pretraining, avoi
 - Defined the purpose of the relation experiment and kept the matching-input condition explicit.
 - Preserved the one-window, missing-interval and earlier-April-exposure qualifications.
 
-## Timing and rendering
+## Timing and rendering of the previous deck
 
 The deck has **12 slides**, with Michaluk on slide 5 at **02:55-03:45** and Wu on slide 6 at **03:45-04:10**. Problem/SOTA occupies **00:00-05:00**, the handoff is **05:00**, and the PoC remains **07:10-08:10**.
 

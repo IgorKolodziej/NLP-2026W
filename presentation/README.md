@@ -1,18 +1,17 @@
 # Ten-minute mid-term presentation
 
-Open [poc.html](poc.html) for the rendered reveal.js slides. Edit [poc.qmd](poc.qmd). Use [speaking_script.md](speaking_script.md) for exact speech and slide-change cues. The approved structure is documented in [PLAN.md](PLAN.md).
+Open [poc.html](poc.html) to present. Use [speaking_script.md](speaking_script.md) for the exact speech and cues. Edit [poc.qmd](poc.qmd) and [styles.css](styles.css) before rendering again. The full storyboard is in [PLAN.md](PLAN.md).
 
-The video has **12 spoken slides**. Presenter 1 covers **00:00-05:00**, Presenter 2 covers **05:00-10:00**.
+| Time | Presenter | Content | Slides |
+|---|---|---|---|
+| 00:00–01:05 | 1 | Task, teaser and research questions | 1–2 |
+| 01:05–03:05 | 1 | Prior work and the contribution | 3–4 |
+| 03:05–05:00 | 1 | Completed A/B/C pipeline and cue example | 5–6 |
+| 05:00–06:50 | 2 | Data, overlap checks, split and measures | 7–8 |
+| 06:50–08:40 | 2 | April result and paired prediction examples | 9–10 |
+| 08:40–10:00 | 2 | Planned experiments, Phase 2 checkpoint and Q&A | 11–12 |
 
-| Time | Content | Slides |
-|---|---|---|
-| 00:00-01:20 | Research problem and curiosity gap | 1-2 |
-| 01:20-02:55 | Explicit features and neural models | 3-4 |
-| 02:55-03:45 | Michaluk hybrid and our differences | 5 |
-| 03:45-05:00 | Article context and evaluation evidence | 6-7 |
-| 05:00-07:10 | Proposed study, data and evaluation | 8-9 |
-| 07:10-08:10 | Current working PoC and preliminary findings | 10 |
-| 08:10-10:00 | Remaining experiments, intended contribution and limits | 11-12 |
+The three appendix slides are for Q&A. They give the twelve cue rules, secondary April metrics and measured compute, and selected literature comparisons. The video prepares the 25 November Q&A and the 2 December Phase 2 submission.
 
 ## Render and present
 
@@ -23,45 +22,29 @@ quarto render presentation/poc.qmd
 quarto preview presentation/poc.qmd
 ```
 
-The HTML embeds reveal.js, CSS, the Inter font and figures, so it can be shared as one file and shown offline. External source links require internet only when opened. Arrow keys advance, `F` enters full screen. Use `S` for speaker view through Quarto preview when the browser permits it.
+The HTML embeds reveal.js, CSS, the Inter font and the prevalence figure for offline playback. External source links need internet access. Arrow keys advance. Press `F` for full screen or `S` for speaker view through Quarto preview. Stop after slide 12 when recording.
 
-The visual style follows the supplied CSS/QMD reference: warm off-white slides, dark teal cover and closing, Inter and teal/orange accents. Citations and detailed evidence are in presenter notes. Slides have no small source footers. Recreate the existing chart assets with `uv run --locked python presentation/render_figures.py`, then render again.
+## Evidence
 
-## What the talk establishes
+The [PoC summary](../results/poc/main/summary.json) reports April 2017 test macro-F₁ of **0.747911** for A, **0.711133** for B and **0.737411** for C. Paired C−B is **+0.026278** on 3,580 posts, of which 830 are clickbait. The result chart shows the four-decimal scores and reports the difference from the unrounded values. The [refit record](../results/poc/main/reproduction.json) documents matching predictions and metrics in a separate locked environment.
 
-The first half explains clickbait ambiguity and the ideas behind Potthast, Biyani, Zhou, Indurthi, Michaluk and Wu. Slide 5 is dedicated to Michaluk and the differences in our study. Split-design and temporal-adaptation studies motivate our evaluation. Sources are linked in the corresponding presenter notes.
+The [exclusion ledger](../results/poc/main/exclusion_ledger.csv) records 54 empty teasers, 411 repeated teasers and 391 repeated normalized titles. The resulting 18,682-row pilot has 4,448 positive labels. Median lengths of 10 words for clickbait and 12 for the other class use whitespace word counts over all cleaned posts. Exact main-split ID, normalized-teaser and title overlap checks are zero. Near-duplicate and cross-corpus checks remain pending.
 
-Our intended contribution is a controlled account of when twelve interpretable cues add information beyond fixed embeddings, whether the benefit persists over time, and which families contribute. A separate matched-input experiment will examine teaser-article relations. Individual linguistic patterns, hybrid prediction and title-body comparison already have precedents.
+The [April examples](assets/selected_examples.csv) illustrate a correction and an introduced false positive. Across the April test, C corrects 162 errors made by B and introduces 80. Both examples activate the initial-pointer cue. The March cue demonstration uses Webis-17 post `837668396816728064` and illustrates two implemented rules. [Cue definitions](../docs/cues.md)
 
-| Mid-term requirement | Evidence in the deck |
-|---|---|
-| Research problem | Slides 1-2: teaser input, human labels, curiosity gap and ambiguity |
-| Revised SOTA | Slides 3-7: methods, motivation, differences and evaluation conditions |
-| Proposed methodology / experimental plan | Slides 8-9 and 11: A/B/C, cues, splits and planned context study |
-| Working PoC and preliminary findings | Slide 10: real-data outputs, scores and verified reproduction |
-| Next steps and feedback | Slides 11-12: hypothesis-specific evidence, unfinished checks and Q&A focus |
+April was held out from fitting and regularization selection in this run. The team had previously seen April pilot scores. The current estimate covers one temporal window and the paired interval is pending.
 
-The video is a preparation milestone, not a claim of complete Phase 2 compliance. All current A/B/C classifiers are LR. A feasible distinct decision-model family still needs confirmation for Criterion 2.3, optional Jeff is one candidate. Webis-16 has no transfer result because compatibility and overlap checks remain unfinished.
+The compute appendix uses the measured 8.024 s runner, 0.582 s April inference and 718.6 MiB process-wide peak RSS on an Apple M3 Max with thread limits 4. These figures use cached embeddings and exclude download and embedding-generation time. The runner measurement covers reconciliation, fitting, scoring and export after imports.
 
-## Evidence provenance
-
-All PoC numbers come from `results/poc/main/`. April macro-F₁ is **A 0.747911 / B 0.711133 / C 0.737411**, **C−B +0.026278**, on **3,580 posts, 830 positive**. The full cleaned corpus has **18,682 posts**. Exact main-split ID/normalized-teaser/title overlap checks are zero. The near-duplicate audit remains unfinished. `reproduction.json` records a fresh-environment refit with matching predictions and metrics.
-
-April was excluded from fitting and selection, but its earlier pilot exposure means it is not a fresh blind test. One window and point estimates do not establish temporal robustness or significance.
-
-The saved PoC artifacts record the measured **8.024 s** runner time and **718.6 MiB** process-wide peak RSS on Apple M3 Max with OMP/MKL thread limits 4. Timing includes reconciliation, fitting, scoring and figure export after imports, using cached embeddings. It excludes downloads and embedding generation. Timing varies by machine.
-
-Additional model-disagreement examples are saved in `assets/selected_examples.csv`: one correction and one introduced false positive. Across April, C corrects **162** B errors and introduces **80**. These descriptive changes do not isolate individual-cue causality. `assets/artifact_manifest.json` records figure provenance and hashes.
-
-To reproduce the PoC in a new output directory, follow the root README and run:
+For a new result, follow the [root README](../README.md) for raw data and cache setup, then run:
 
 ```bash
 uv run --locked python scripts/run_poc.py --output results/poc/local
 uv run --locked python scripts/run_poc.py --verify results/poc/local
 ```
 
-## Rehearsal and submission
+## Rehearsal and recording
 
-The exact script contains **1,217 spoken words** with contiguous **600-second** windows and a **05:00 handoff**. Rehearse aloud with both presenters, allowing for paper names, decimal scores, slide changes and pauses. The timings are targets. No recording duration has been measured. Stop after slide 12.
+The script has **1,111 spoken words** and the windows sum to **600 seconds**, with a **05:00 handoff**. Rehearse aloud with both presenters and time the pauses. Check full-screen legibility and both audio levels. The recorded video is submitted to the course Teams channel.
 
-Record the screen and microphone audio, check legibility and both audio levels, then submit the video to the course Teams channel. No video has been recorded or uploaded. The 18 November video prepares the 25 November Q&A and 2 December Phase 2 submission. Contribution hours, the formal LLM declaration, data statement, MR and point-by-point rebuttal remain report/submission responsibilities.
+For the Phase 2 experiment plan, a compact fine-tuned encoder is a candidate for the second method class. Webis-16 awaits schema, label and overlap checks. Jeff and YTClickbait21K remain optional.

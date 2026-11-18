@@ -1,136 +1,130 @@
 # Mid-term video speaking script
 
-English, two presenters, target **10:00** including slide changes, handoff and natural pauses. **Presenter 1: 00:00-05:00. Presenter 2: 05:00-10:00.** The first five minutes cover the problem, SOTA approaches and research gap. The PoC occupies 07:10-08:10.
+English, two presenters and a ten-minute target including pauses and slide changes. **Presenter 1 ends at 05:00. Presenter 2 finishes at 10:00.** The bracketed cues are silent. Presenter notes contain the same spoken lines.
 
-Read the prose exactly. Do not read headings or bracketed instructions. The same speech appears in presenter notes. Sources in the notes are not spoken. Timing windows are rehearsal targets, not a measured recording.
+## 00:00–00:15 · Presenter 1 · Slide 1 · Clickbait Without the Click
 
-## 00:00-00:25 - Presenter 1 - Slide 1: Clickbait Without the Click
+**[Start on slide 1. Start timing with the first word.]**
 
-**[Start recording on slide 1. Start the timer with the first word.]**
+Given an English social-media teaser, can we predict whether human annotators labelled it clickbait? Our project, Clickbait Without the Click, tests that question on posts collected at different times.
 
-Hello. Our project is Clickbait Without the Click. We ask whether simple language cues help a model detect clickbait, and whether that benefit lasts when we test on later posts. We will explain the problem, review existing approaches, and then present our study and first results.
+## 00:15–01:05 · Presenter 1 · Slide 2 · Which cities?
 
-**[Advance to slide 2 at 00:25. Pause briefly while the audience reads the slide.]**
+**[Advance to slide 2 at 00:15.]**
 
-## 00:25-01:20 - Presenter 1 - Slide 2: Clickbait and the curiosity gap
+“These cities will overthrow Silicon Valley as the new centers for tech in coming years.” Which cities?
 
-Consider this teaser: “These cities will overthrow Silicon Valley as the new centers for tech in coming years.” Which cities? The text promises an answer without naming the cities. This creates a curiosity gap: readers need to open the article to learn the answer.
+**[Pause briefly after “Which cities?”]**
 
-But detecting clickbait takes more than spotting certain words. Ordinary news can also use “these,” questions or emotional language. People may disagree about whether a post is clickbait. We classify English social-media teasers using the labels supplied with the dataset. We are not predicting clicks or checking facts. We also ask whether patterns learned from earlier posts still help on later ones.
+The teaser promises a list without naming them. That gap can make readers curious. Similar wording also appears in ordinary news, so we use the dataset's human labels. Each system sees the teaser, the short message a reader sees before opening the link.
 
-**[Advance to slide 3 at 01:20. Pause briefly while the audience reads the slide.]**
+Our main question is whether twelve fixed language cues improve macro F-one on later posts when we keep the embeddings identical. We then ask whether that gain recurs across months and which groups of cues contribute.
 
-## 01:20-02:05 - Presenter 1 - Slide 3: Explicit linguistic features
+## 01:05–01:55 · Presenter 1 · Slide 3 · What prior work tells us
 
-Early work uses explicit features of the text. Potthast and colleagues measure wording and style in publisher tweets, then use a random forest to classify them. Biyani and colleagues use boosted trees with information from the title, article body and URL, including how informal the article is.
+**[Advance to slide 3 at 01:05.]**
 
-These studies motivate our use of simple, readable cues. They also show why the available input matters: a model given an article has more information than one given only its teaser. We ask whether cues add value to a model that already uses learned text representations.
+Potthast and colleagues showed that observable properties of publisher tweets can help a random forest detect clickbait. Their work gives us a reason to test cues whose definitions we can inspect.
 
-**[Advance to slide 4 at 02:05. Pause briefly while the audience reads the slide.]**
+Zhou's attention model won the 2017 challenge, and Indurthi and colleagues later used transformers to improve strength prediction. That benchmark asked how clickbait-like a post is. Their results use the official challenge test. Our April posts come from the public labelled training release, and our target is its binary label. We take a learned representation as our baseline, freeze it, and measure what the explicit cues add.
 
-## 02:05-02:55 - Presenter 1 - Slide 4: Learning patterns from text
+## 01:55–03:05 · Presenter 1 · Slide 4 · What our experiment adds
 
-Neural approaches learn patterns from text. Zhou's system uses a recurrent network that reads a tweet in both directions. Attention helps it focus on important words. It learns features without defining each one by hand, and won the 2017 Clickbait Challenge.
+**[Advance to slide 4 at 01:55.]**
 
-Indurthi and colleagues use transformer representations and boosted regression to predict clickbait strength. They ask how clickbait-like a post is, rather than only whether it is clickbait.
+Michaluk and colleagues show that a hybrid can work. Their model combines OpenAI embeddings with fifteen explicit features and uses boosted decision trees. Their reported ablation changes embedding size as well as adding features. We keep the vectors identical for our embedding and hybrid systems and give both the same classifier family and tuning budget.
 
-These studies motivate our embedding baseline. An embedding is a vector of numbers representing a text. We keep that representation fixed and ask what explicit cues add. Scores from different tasks and test sets are not directly comparable.
+Søgaard and colleagues show why a shuffled split can give optimistic results. We measure the cue gain across later months and use grouped random splits as a diagnostic. Grouping keeps posts with the same normalized title together in those diagnostics. We audit overlap across partitions and remove one cue family at a time to learn where the gain comes from. Our data lacks publisher IDs, so the chronological test tells us about later posts from this collection.
 
-**[Advance to slide 5 at 02:55. Pause briefly while the audience reads the slide.]**
+## 03:05–04:15 · Presenter 1 · Slide 5 · The A/B/C pipeline
 
-## 02:55-03:45 - Presenter 1 - Slide 5: Michaluk et al.: our starting point
+**[Advance to slide 5 at 03:05.]**
 
-Michaluk and colleagues combine OpenAI embeddings with fifteen linguistic features and XGBoost. The features include pronouns and attention-grabbing punctuation. They evaluate headlines from mixed sources using a random split.
+In the proof of concept, we join the released labels to teasers by ID, clean and audit the data, and use a recorded chronological split. Each system sees the same teaser text.
 
-Their reported comparison changes embedding width as well as adding features. Our B and C models use exactly the same embedding vectors and classifier family, so the added cue block is the controlled difference. We will test that difference across later months and remove cue groups to see which help. Our contribution is a controlled test of cue value and its stability over time.
+System A weights word and character patterns with TF-IDF. B uses MiniLM to turn a teaser into a fixed vector of three hundred and eighty-four numbers. C takes that exact vector and appends twelve cue values from the same teaser. Each system fits its own logistic regression using the same five regularization options. We give more weight to the less frequent clickbait class during fitting. The common representation lets us test what the twelve cues add to B. A gives us a separate lexical benchmark using the same posts.
 
-**[Advance to slide 6 at 03:45. Pause briefly while the audience reads the slide.]**
+## 04:15–05:00 · Presenter 1 · Slide 6 · What a cue measures
 
-## 03:45-04:10 - Presenter 1 - Slide 6: Title style and article context
+**[Advance to slide 6 at 04:15.]**
 
-Wu and colleagues study title style and title-body relationships using attention. This motivates our separate context experiment with word overlap, missing named entities and text similarity. Every compared model will receive the same teaser, title and article lead. We will test whether relation cues add further information.
+Here is a March teaser. “How does your brain handle virtual reality?” It starts with “how” and contains a question mark, so the question hook fires. The word “your” matches one of seven tokens for direct address.
 
-**[Advance to slide 7 at 04:10. Pause briefly while the audience reads the slide.]**
+The twelve cues cover four families. They describe how a teaser withholds information, involves the reader, frames a story, or packages a promise. Ordinary reporting can use these patterns too. Now let's see what happened when we ran these models on later posts.
 
-## 04:10-05:00 - Presenter 1 - Slide 7: Evidence for generalization
+**[Handoff at 05:00.]**
 
-How we split the data matters. Søgaard and colleagues show that random splits can give optimistic estimates of performance on new samples. We plan to compare later-month tests with random splits that keep posts linked to the same article together.
+## 05:00–06:00 · Presenter 2 · Slide 7 · What entered the PoC
 
-Röttger and Pierrehumbert found that extra pretraining on text from a specific period did not improve their classifier beyond pretraining on the same type of text. We therefore need to measure whether language changes affect our results.
+**[Presenter 2 takes over and advances to slide 7 at 05:00.]**
 
-RoCliCo tests articles from unseen publishers. Our data lacks publisher IDs, so later-month tests cannot establish that kind of transfer. Presenter Two will now explain our study.
+We started from the public labelled Webis-17 release. After joining texts and labels, we removed empty and repeated teasers. That left nineteen thousand and seventy-three posts. A further three hundred and ninety-one shared a normalized article title with an earlier retained post. Every exclusion is recorded in the ledger.
 
-**[Handoff to Presenter 2 at 05:00.]**
+About twenty-four percent of the cleaned posts are labelled clickbait. The chart shows that December has the largest positive share. In the cleaned corpus, the median teaser length is ten words for clickbait and twelve for the other class.
 
-## 05:00-06:15 - Presenter 2 - Slide 8: Our proposed study
+Our main partitions share zero exact IDs, normalized teasers, or normalized titles. We use titles as a proxy for articles, so related articles with different titles need a separate check. That near-duplicate audit is still pending.
 
-**[Presenter 2 takes over at 05:00. Advance to slide 8.]**
+## 06:00–06:50 · Presenter 2 · Slide 8 · Train, validate, test
 
-We compare three systems. A uses TF-IDF, which weights word and character patterns, followed by logistic regression. B uses fixed MiniLM embeddings with logistic regression. C uses exactly the same embeddings as B and adds twelve cue values. All three use the same classifier family and five regularization settings to choose from.
+**[Advance to slide 8 at 06:00.]**
 
-The cues form four groups of three. They cover withheld information, direct reader involvement, emotional or narrative wording, and how specific or attention-grabbing the text is. Examples include an opening “these,” direct address, surprise words and promises such as “7 reasons”. A cue is a possible signal, not proof of clickbait.
+We train on December through February, select regularization in March, and score the resulting systems on April. The training rows determine the TF-IDF vocabulary and how we scale the cues. The MiniLM encoder stays frozen.
 
-We ask whether these cues improve B, whether the benefit lasts across months, and which groups matter. In the context experiment, every model will receive the same teaser, title and first ninety-six words of the article lead. We will test three extra relation cues beyond a baseline that already has the twelve teaser cues.
+About twenty-three percent of April posts are positive. Macro F-one gives both classes equal weight by averaging their two F-one scores. Our primary comparison subtracts B's score from C's on exactly the same April posts. We also measure positive-class precision and recall, average precision, and Brier score. Later, we will use reliability diagrams to compare predicted probabilities with observed rates.
 
-**[Advance to slide 9 at 06:15. Pause briefly while the audience reads the slide.]**
+## 06:50–07:55 · Presenter 2 · Slide 9 · April results
 
-## 06:15-07:10 - Presenter 2 - Slide 9: Data and evaluation design
+**[Advance to slide 9 at 06:50.]**
 
-We use the public labelled Webis-17 training release, covering December 2016 to April 2017. We join texts and labels by ID, then remove empty teasers, repeated teasers and repeated article titles. This leaves eighteen thousand six hundred and eighty-two posts, with about twenty-four percent labelled clickbait.
+The pipeline ran end to end on real posts. It saved predictions for all three systems on the same test rows. A fresh environment reproduced the results. The repository includes the predictions and the commands for running the experiment.
 
-We train on December through February, choose regularization using March, and test on three thousand five hundred and eighty April posts. We learn the TF-IDF vocabulary and cue scaling from training data only. Macro F-one averages the F-one scores of both classes. We compare C minus B on the same test posts. Two earlier time windows and three grouped random splits are planned. Webis-16 transfer checks remain unfinished.
+**[Give viewers a moment to read the chart before stating the difference.]**
 
-**[Advance to slide 10 at 07:10. Pause briefly while the audience reads the slide.]**
+Adding the cues raised April macro F-one by two point six three percentage points over the MiniLM baseline. TF-IDF had the highest macro F-one in this window.
 
-## 07:10-08:10 - Presenter 2 - Slide 10: PoC: cues improve B, A remains strongest
+April was held out from fitting and regularization selection in this run. We had seen earlier April pilot scores, so we treat this as preliminary. We have a point estimate from one window, with the paired interval still to come.
 
-The proof of concept saves predictions for all three models on the same test posts. Reloading the models reproduced those predictions. A separate run in a fresh environment with the same package versions also matched.
+## 07:55–08:40 · Presenter 2 · Slide 10 · What changed on individual posts?
 
-On April, A scores macro F-one zero point seven four seven nine. B scores zero point seven one one one. C scores zero point seven three seven four. Adding cues to B gives about two point six three percentage points.
+**[Advance to slide 10 at 07:55.]**
 
-So cues improve B in this run, but A remains strongest. This PoC covers one time window, and we have not calculated a confidence interval for the difference. April was excluded from training and model selection, but the team had already seen earlier pilot results on it. These findings are preliminary.
+**[Point to the first example, then to the second as it is introduced.]**
 
-**[Advance to slide 11 at 08:10. Pause briefly while the audience reads the slide.]**
+The first example is the teaser we opened with. B missed it and C correctly flagged it. On the right, the post recommends shows and movies. The corpus label is non-clickbait, and C introduces a false positive. Both posts trigger the opening-pointer cue. These are two examples of what changes when we fit the full hybrid model.
 
-## 08:10-09:10 - Presenter 2 - Slide 11: Remaining experiments
+Across the April test, C corrected a hundred and sixty-two errors that B made and introduced eighty new errors. We will use such disagreements to guide a systematic error analysis.
 
-Next, we will calculate uncertainty for C minus B using paired bootstrap resampling of the test posts. We will compare the gain across all three time windows and the grouped random splits. A gain seen only in random splits would not show that it lasts over time.
+## 08:40–09:30 · Presenter 2 · Slide 11 · What will test H1–H4?
 
-We will also remove one cue group at a time, examine changes in cue values, and study at least twenty errors or model disagreements. The context experiment will compare models on the same posts and article text.
+**[Advance to slide 11 at 08:40.]**
 
-We still need to check near duplicates and cross-dataset overlap, and how well predicted probabilities match observed labels. For Phase Two, we still need a baseline from another classifier family. A Jeff language-model comparison and YouTube title tests remain optional.
+Next, we will estimate uncertainty around the April gain, then check whether it recurs in February and March and how it compares with grouped random splits. We will remove one cue family at a time, examine at least twenty categorized errors, and check calibration alongside class prevalence.
 
-**[Advance to slide 12 at 09:10. Pause briefly while the audience reads the slide.]**
+Wu and colleagues motivate our context study. Both systems get the same posts, teasers, titles and the first ninety-six word tokens from available article paragraphs. Both already use the twelve teaser cues. D adds three measurements of how the teaser relates to that excerpt.
 
-## 09:10-10:00 - Presenter 2 - Slide 12: Intended contribution and next checkpoint
+## 09:30–10:00 · Presenter 2 · Slide 12 · Before the Phase 2 checkpoint
 
-We want to understand when simple language cues improve clickbait detection, which groups help, and whether their value lasts over time. Finding no benefit, or a benefit that changes between months, would still answer part of our question.
+**[Advance to slide 12 at 09:30.]**
 
-Our data is historical, and the labels reflect human judgment. Topics and language may change together. We use article titles to approximate article identity, and have no publisher IDs. These limits rule out claims about current deployment or unseen publishers.
+Before Phase Two, our priorities are near-duplicate checking and selecting an additional method class. A fine-tuned encoder on the same teaser splits is one candidate. Webis-16 transfer also needs schema, label and overlap checks. For the Q-and-A, we'd like feedback on validating near-duplicate detection when related articles have different titles. Thank you.
 
-Before December second, we will strengthen the experiments, data checks, literature review and reproduction instructions, and address supervisor and Q-and-A feedback. Thank you.
+**[End the recording on slide 12. The three appendix slides are for Q&A.]**
 
-**[Finish by 10:00. End the video.]**
+## Rehearsal timings
 
-## Rehearsal and recording
+| Slide | Time | Presenter | Spoken words |
+|---|---|---|---:|
+| 1 | 00:00–00:15 | 1 | 29 |
+| 2 | 00:15–01:05 | 1 | 96 |
+| 3 | 01:05–01:55 | 1 | 98 |
+| 4 | 01:55–03:05 | 1 | 132 |
+| 5 | 03:05–04:15 | 1 | 121 |
+| 6 | 04:15–05:00 | 1 | 80 |
+| 7 | 05:00–06:00 | 2 | 124 |
+| 8 | 06:00–06:50 | 2 | 95 |
+| 9 | 06:50–07:55 | 2 | 106 |
+| 10 | 07:55–08:40 | 2 | 87 |
+| 11 | 08:40–09:30 | 2 | 91 |
+| 12 | 09:30–10:00 | 2 | 52 |
 
-| Slide | Time | Presenter | Topic | Spoken words |
-|---|---|---|---|---:|
-| 1 | 00:00-00:25 | 1 | Clickbait Without the Click | 46 |
-| 2 | 00:25-01:20 | 1 | Clickbait and the curiosity gap | 106 |
-| 3 | 01:20-02:05 | 1 | Explicit linguistic features | 93 |
-| 4 | 02:05-02:55 | 1 | Learning patterns from text | 106 |
-| 5 | 02:55-03:45 | 1 | Michaluk et al.: our starting point | 93 |
-| 6 | 03:45-04:10 | 1 | Title style and article context | 47 |
-| 7 | 04:10-05:00 | 1 | Evidence for generalization | 104 |
-| 8 | 05:00-06:15 | 2 | Our proposed study | 157 |
-| 9 | 06:15-07:10 | 2 | Data and evaluation design | 114 |
-| 10 | 07:10-08:10 | 2 | PoC: cues improve B, A remains strongest | 126 |
-| 11 | 08:10-09:10 | 2 | Remaining experiments | 124 |
-| 12 | 09:10-10:00 | 2 | Intended contribution and next checkpoint | 101 |
-
-Total spoken words: **1,217**. Presenter 1: **595** words. Presenter 2: **622** words. The twelve windows total **600 seconds**. Slide targets range from 110 to 127 words per minute, allowing for pronunciation, pointing and pauses.
-
-Rehearse aloud with a stopwatch, especially the paper names, decimal scores and 05:00 handoff. If ahead, pause after the example, tables and result. If behind, practise a steadier delivery. Keep the qualifications about incomplete experiments and earlier April exposure.
-
-Record full-screen slides with microphone audio. Check both presenters' levels and that the result chart is readable. End on slide 12. No video has been recorded or uploaded.
+**1,111 spoken words.** Presenter 1 has **556** words and Presenter 2 has **555**. The planned windows sum to **600 seconds**. Time a joint read with pauses and the handoff. If a section runs long, shorten literature details and optional work before touching the result or the April disclosure.
