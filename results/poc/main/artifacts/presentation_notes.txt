@@ -1,0 +1,8 @@
+PoC presentation notes
+
+Question: do twelve interpretable teaser cues improve a frozen MiniLM + logistic-regression baseline under a future-month split?
+Data/protocol: Webis-17 postText; train Dec 2016–Feb 2017, validate Mar 2017, test Apr 2017; class-weighted LR; test labels are not used for tuning.
+Systems: A word/character TF–IDF + LR; B frozen all-MiniLM-L6-v2 embeddings + LR; C B plus twelve cues + LR.
+Observed PoC: A=0.7479, B=0.7111, C=0.7374; C−B=+0.0263 macro-F1 on temporal_main/test (n=3,580, positive=23.2%).
+Interpretation: this is one temporal window and a pilot result; it does not establish robustness across months, causality, or publisher generalization. Article titles are only an article-identity proxy, and the broader near-duplicate audit is unfinished. The main test partition had an earlier pilot score, so the result must be presented with that prior exposure disclosed.
+Next: repeat the other temporal windows and grouped-random diagnostics, run four cue-family ablations, quantify uncertainty and complete the matched teaser–article context experiment.

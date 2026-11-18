@@ -4,19 +4,18 @@ from unittest.mock import patch
 
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.stats import loguniform
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 
 from clickbait.config import load_config
-from clickbait.tuning import TuningConvergenceError, fit_lr, make_lr, sample_c_values, tune_lr_c
+from clickbait.tuning import TuningConvergenceError, fit_lr, make_lr, candidate_c_values, tune_lr_c
 
 
 class TuningTests(unittest.TestCase):
     def setUp(self):
         self.cfg = load_config()
-        self.cfg["randomized_search"]["n_iter"] = 4
+        self.cfg["grid_search"]["C"] = [0.01, 0.1, 1.0, 100.0]
         rng = np.random.default_rng(17)
         x = rng.normal(size=(120, 6))
         y = (x[:, 0] - x[:, 1] + rng.normal(size=120) > 0.8).astype(int)
@@ -27,7 +26,7 @@ class TuningTests(unittest.TestCase):
         return tune_lr_c(self.x_train, self.y_train, self.x_val, self.y_val, cfg or self.cfg, 42)
 
     def test_dense_and_sparse_search_match_reference(self):
-        values = loguniform.rvs(0.01, 100, size=4, random_state=np.random.default_rng(42))
+        values = [0.01, 0.1, 1.0, 100.0]
         for convert in (np.asarray, csr_matrix):
             with self.subTest(matrix=convert.__name__):
                 x_train, x_val = convert(self.x_train), convert(self.x_val)
@@ -49,13 +48,14 @@ class TuningTests(unittest.TestCase):
                 self.assertEqual(best_c, values[np.argmax(scores)])
                 self.assertEqual(best_score, max(scores))
 
-    def test_ties_keep_first_sampled_candidate(self):
-        with patch("clickbait.tuning.sample_c_values", return_value=[3.0, 0.1, 1.0]):
+    def test_ties_select_smallest_regularization_value(self):
+        self.cfg["grid_search"]["C"] = [3.0, 0.1, 1.0]
+        with self.subTest(grid="unsorted"):
             best_c, best_score, candidates = tune_lr_c(
                 np.zeros_like(self.x_train), self.y_train,
                 np.zeros_like(self.x_val), self.y_val, self.cfg, 42,
             )
-        self.assertEqual(best_c, 3.0)
+        self.assertEqual(best_c, 0.1)
         self.assertEqual([row["validation_macro_f1"] for row in candidates], [best_score] * 3)
 
     def test_real_nonconvergence_aborts_search(self):
@@ -76,7 +76,7 @@ class TuningTests(unittest.TestCase):
             return fit_lr(model, x, y)
 
         with (
-            patch("clickbait.tuning.sample_c_values", return_value=[1.0, 2.0, 3.0]),
+            patch("clickbait.tuning.candidate_c_values", return_value=[1.0, 2.0, 3.0]),
             patch("clickbait.tuning.fit_lr", side_effect=fail_second) as fit,
             self.assertRaises(TuningConvergenceError) as caught,
         ):
@@ -94,11 +94,18 @@ class TuningTests(unittest.TestCase):
         with self.assertRaises(ConvergenceWarning):
             fit_lr(make_lr(1.0, self.cfg, 42), self.x_train, self.y_train)
 
-    def test_empty_search_is_rejected(self):
-        cfg = copy.deepcopy(self.cfg)
-        cfg["randomized_search"]["n_iter"] = 0
-        with self.assertRaisesRegex(ValueError, "n_iter must be positive"):
-            sample_c_values(cfg, np.random.default_rng(42))
+    def test_invalid_grids_are_rejected(self):
+        for values in ([], [0], [-1], [float("nan")], [float("inf")], [[1]], [1, 1]):
+            with self.subTest(values=values):
+                cfg = copy.deepcopy(self.cfg)
+                cfg["grid_search"]["C"] = values
+                with self.assertRaisesRegex(ValueError, "grid_search.C"):
+                    candidate_c_values(cfg)
+
+    def test_grid_is_independent_of_seed(self):
+        first = self.search()
+        second = tune_lr_c(self.x_train, self.y_train, self.x_val, self.y_val, self.cfg, 123)
+        self.assertEqual([row["C"] for row in first[2]], [row["C"] for row in second[2]])
 
 
 if __name__ == "__main__":

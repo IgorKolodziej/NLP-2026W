@@ -22,7 +22,7 @@ class NeuralFeatureTests(unittest.TestCase):
         self.posts = pd.DataFrame(
             {
                 "post_id": ["train-long", "train-short", "val-extreme", "val-phrase"],
-                "post_text": ["YOU! 2 cats?", "a", "you " * 100 + "!", "must seem"],
+                "post_text": ["YOU! 2 cats?", "a", "you " * 100 + "!", "you won't believe"],
             },
             index=[41, 7, 99, 13],
         )
@@ -49,12 +49,12 @@ class NeuralFeatureTests(unittest.TestCase):
 
     def test_cue_values_follow_documented_order(self):
         c = self.inputs([0], "C")
-        expected = [12, 3, 8 / 3, 1, 1, 1, 3 / 7, 1, 1, 0, 0, 1]
+        expected = [0, 0, 0, 1 / 3, 0, 0, 0, 0, 0, 0, 2 / 12, 0]
         np.testing.assert_allclose(c[0, EMBEDDING_DIM:], expected)
 
-    def test_literal_and_overlapping_phrase_matches(self):
-        cues = cues_matrix(pd.Series(["must see", "must seem", "you won't believe"]))
-        np.testing.assert_array_equal(cues[:, 10], [1, 1, 2])
+    def test_phrase_boundaries_replace_legacy_substrings(self):
+        cues = cues_matrix(pd.Series(["find out why", "find out whysoever", "you won't believe"]))
+        np.testing.assert_array_equal(cues[:, 2], [1, 0, 1])
 
     def test_train_only_scaling_and_embedding_passthrough(self):
         train = self.inputs([1, 0], "C")
@@ -66,10 +66,10 @@ class NeuralFeatureTests(unittest.TestCase):
         scaler = preprocessor.named_transformers_["cues"]
 
         self.assertEqual(scaler.n_samples_seen_, 2)
-        self.assertEqual(scaler.mean_[0], 6.5)
-        self.assertEqual(scaler.scale_[0], 5.5)
-        np.testing.assert_allclose(transformed_train[:, EMBEDDING_DIM], [-1, 1])
-        np.testing.assert_allclose(transformed_val[:, EMBEDDING_DIM], [(401 - 6.5) / 5.5, (9 - 6.5) / 5.5])
+        self.assertAlmostEqual(scaler.mean_[3], 1 / 6)
+        self.assertAlmostEqual(scaler.scale_[3], 1 / 6)
+        np.testing.assert_allclose(transformed_train[:, EMBEDDING_DIM + 3], [-1, 1])
+        np.testing.assert_allclose(transformed_val[:, EMBEDDING_DIM + 3], [5, 1])
         for raw, transformed in ((train, transformed_train), (validation, transformed_val)):
             np.testing.assert_array_equal(transformed[:, :EMBEDDING_DIM], raw[:, :EMBEDDING_DIM])
             self.assertEqual(transformed.shape, (2, 396))
@@ -89,9 +89,9 @@ class NeuralFeatureTests(unittest.TestCase):
         preprocessor.fit(self.inputs([0, 1], "C"))
         validation = preprocessor.transform(self.inputs([3], "C"))
         scaler = preprocessor.named_transformers_["cues"]
-        self.assertEqual(scaler.var_[10], 0)
-        self.assertEqual(scaler.scale_[10], 1)
-        self.assertEqual(validation[0, EMBEDDING_DIM + 10], 1)
+        self.assertEqual(scaler.var_[2], 0)
+        self.assertEqual(scaler.scale_[2], 1)
+        self.assertEqual(validation[0, EMBEDDING_DIM + 2], 1)
         self.assertTrue(np.isfinite(validation).all())
 
 

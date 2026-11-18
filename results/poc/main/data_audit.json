@@ -1,0 +1,24 @@
+{
+  "sources": {
+    "instances": "data/raw/instances.jsonl",
+    "truth": "data/raw/truth.jsonl"
+  },
+  "source_sha256": {
+    "instances": "88fb4dbbb4008c15048d750aa4d6ee954e09c5fd757db6dc5dd8d65222a60884",
+    "truth": "9ba97792ff81f604a9c3b1abbe8471d2e619be2acd6742d48e5a588f611c14b0"
+  },
+  "cleaning": {
+    "raw_joined": 19538,
+    "empty_teasers": 54,
+    "repeated_teasers": 411,
+    "repeated_article_titles": 391,
+    "retained": 18682,
+    "final_rows": 18682,
+    "positive_count": 4448
+  },
+  "cleaning_dataclass": {
+    "raw_joined": 19538,
+    "final_rows": 18682
+  },
+  "ledger": "exclusion_ledger.csv"
+}

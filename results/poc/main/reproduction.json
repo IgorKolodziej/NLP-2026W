@@ -1,0 +1,12 @@
+{
+  "verified": true,
+  "method": "independent full fit in fresh uv environment from the committed lockfile, followed by no-fit reload verification",
+  "environment": "separate Python 3.12 virtual environment",
+  "test_ids": 3580,
+  "labels_equal": true,
+  "predictions_equal": true,
+  "probabilities_atol": 1e-12,
+  "probabilities_rtol": 1e-10,
+  "metrics_equal": true,
+  "source_summary_sha256": "e1aeb7bb67eb92f713d964639e0d81ab2a95404a51cf4b04ead2751accd26d64"
+}

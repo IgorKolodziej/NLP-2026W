@@ -65,8 +65,13 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
 
 
 def build_raw_frame(instances_path: Path, truth_path: Path) -> pd.DataFrame:
-    instances = {row["id"]: row for row in load_jsonl(instances_path)}
+    instance_rows = load_jsonl(instances_path)
+    instances = {row["id"]: row for row in instance_rows}
     truth_rows = load_jsonl(truth_path)
+    if len(instances) != len(instance_rows) or len({row["id"] for row in truth_rows}) != len(truth_rows):
+        raise ValueError("Duplicate IDs in instances or truth")
+    if set(instances) != {row["id"] for row in truth_rows}:
+        raise ValueError("Instance and truth ID sets differ")
     records: list[dict[str, Any]] = []
     missing_instance = 0
     for t in truth_rows:
@@ -85,6 +90,8 @@ def build_raw_frame(instances_path: Path, truth_path: Path) -> pd.DataFrame:
                 "truth_class": t["truthClass"],
                 "label": truth_to_label(t["truthClass"]),
                 "truth_judgments": t.get("truthJudgments"),
+                "truth_mean": t.get("truthMean"),
+                "target_paragraphs": inst.get("targetParagraphs", []),
             }
         )
     if missing_instance:

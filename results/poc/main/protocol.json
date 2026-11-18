@@ -1,0 +1,214 @@
+{
+  "status": "pilot",
+  "split": "temporal_main",
+  "split_type": "temporal",
+  "config": {
+    "random_seed": 42,
+    "paths": {
+      "data_raw": "data/raw",
+      "data_processed": "data/processed",
+      "splits": "splits",
+      "cache": "cache",
+      "results": "results/standalone"
+    },
+    "webis17": {
+      "instances": "data/raw/instances.jsonl",
+      "truth": "data/raw/truth.jsonl"
+    },
+    "splits": {
+      "random_seeds": [
+        42,
+        43,
+        44
+      ],
+      "random_ratios": {
+        "train": 0.7,
+        "val": 0.15,
+        "test": 0.15
+      }
+    },
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "embeddings": {
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "batch_size": 32,
+      "max_seq_length": 256,
+      "normalize_embeddings": true
+    },
+    "logistic_regression": {
+      "class_weight": "balanced",
+      "max_iter": 1000,
+      "solver": "lbfgs"
+    },
+    "grid_search": {
+      "scoring": "macro_f1",
+      "C": [
+        0.01,
+        0.1,
+        1.0,
+        10.0,
+        100.0
+      ],
+      "tie_break": "smallest_C"
+    },
+    "protocol": {
+      "status": "pilot",
+      "min_test_size": 1000
+    },
+    "training": {
+      "refit_on": "train"
+    }
+  },
+  "partitions": {
+    "train": {
+      "n": 11184,
+      "positive": 2710,
+      "positive_rate": 0.242310443490701
+    },
+    "val": {
+      "n": 3918,
+      "positive": 908,
+      "positive_rate": 0.23175089331291476
+    },
+    "test": {
+      "n": 3580,
+      "positive": 830,
+      "positive_rate": 0.23184357541899442
+    }
+  },
+  "audit": {
+    "manifest": "temporal_main",
+    "type": "temporal",
+    "months": {
+      "train": [
+        "2016-12",
+        "2017-01",
+        "2017-02"
+      ],
+      "val": [
+        "2017-03"
+      ],
+      "test": [
+        "2017-04"
+      ]
+    },
+    "partitions": {
+      "train": {
+        "n": 11184,
+        "positive": 2710,
+        "positive_rate": 0.242310443490701
+      },
+      "val": {
+        "n": 3918,
+        "positive": 908,
+        "positive_rate": 0.23175089331291476
+      },
+      "test": {
+        "n": 3580,
+        "positive": 830,
+        "positive_rate": 0.23184357541899442
+      }
+    },
+    "cross_partition_overlap": {
+      "train_val": {
+        "ids": 0,
+        "normalized_teasers": 0,
+        "normalized_titles": 0
+      },
+      "test_train": {
+        "ids": 0,
+        "normalized_teasers": 0,
+        "normalized_titles": 0
+      },
+      "test_val": {
+        "ids": 0,
+        "normalized_teasers": 0,
+        "normalized_titles": 0
+      }
+    },
+    "min_test_size": 1000
+  },
+  "raw_audit": {
+    "sources": {
+      "instances": "data/raw/instances.jsonl",
+      "truth": "data/raw/truth.jsonl"
+    },
+    "source_sha256": {
+      "instances": "88fb4dbbb4008c15048d750aa4d6ee954e09c5fd757db6dc5dd8d65222a60884",
+      "truth": "9ba97792ff81f604a9c3b1abbe8471d2e619be2acd6742d48e5a588f611c14b0"
+    },
+    "cleaning": {
+      "raw_joined": 19538,
+      "empty_teasers": 54,
+      "repeated_teasers": 411,
+      "repeated_article_titles": 391,
+      "retained": 18682,
+      "final_rows": 18682,
+      "positive_count": 4448
+    },
+    "cleaning_dataclass": {
+      "raw_joined": 19538,
+      "final_rows": 18682
+    },
+    "ledger": "exclusion_ledger.csv"
+  },
+  "grid": [
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0
+  ],
+  "tie_break": "smallest_C",
+  "cue_specification": "mechanism_cues",
+  "selected_C": {
+    "A": 10.0,
+    "B": 10.0,
+    "C": 10.0
+  },
+  "model_hashes": {
+    "A": "31ac0e236254e2ab3c793ec11cd4040b23cb1bcd8c62180bd8ff1e10ae574594",
+    "B": "c781fd39a46dc6f3deb12b6abfe0f25fe466671bb8bf92b913f77258c09d28f9",
+    "C": "86e24770ebf9ca1632cc32b14fc537d384dfcf1a4d4749f0275f44b45e7efcb9"
+  },
+  "input_hashes": {
+    "data/processed/posts.parquet": "a0558ae899be0e0bdb99396a8f3711c01b1ba97ad3b96e48057d6641ab7f1968",
+    "splits/temporal_main.json": "be8d0c11adcb790395c4512c191432ddaec238e760d22499a261b5058e8629da",
+    "cache/embeddings/meta.json": "dccd84ad858bdc121d31adb5a01606735bd169f5b6eb33f4823f66b6c3c86287",
+    "cache/embeddings/embeddings.npz": "e385c3cef0341b4998f112e31b7fcbfe09da16cf52ac07ac2caf5cab0890bffb",
+    "configs/experiment.yaml": "51c80947631f100efecc2da5577c92e01c679c9d38f5b2b395136623eba4adc5",
+    "uv.lock": "2a6136b6d6eff33a21bd08330c1c5b24cec676338153f0173260b117010d604f",
+    "resources/linguistic_cues.json": "a35f9e493c7db5db6c714e4eafd3714aa4d1354b64251f1092dec01b821e41b5",
+    "src/clickbait/cues.py": "9b42aa0f52ebd2cb57bbf305d354d9d0a329db20059ef0df0988e2d3d1ba507e",
+    "src/clickbait/tuning.py": "039470cda3b11b2b3658e754c1133be004692c7515db9b777791c5a51e46489c",
+    "src/clickbait/models/neural.py": "47ceec4f46ab23887c311ae3a8e9340fa3700feee89ac307379d3d5401974614",
+    "src/clickbait/models/system_a.py": "4f1ab8fcabce5a2f4fe8fbf906837966f208a01c560032f5d3ae0c086db6e4cb",
+    "src/clickbait/metrics.py": "0b173481ad60b8339d5cbcb71becef6a76460cb19a404e699195f025c6448bd8",
+    "src/clickbait/dataset.py": "2bd3bbccb6213410727711c1418a1ef126f1ec4196dfd9a067ff4f8f1a6daf44",
+    "src/clickbait/poc.py": "f3b86817e1088a778cf21a48a503f64ece2aa167ab6c81f63da0bbbd04be07fa",
+    "src/clickbait/poc_data.py": "f68d12d524682d4fe517b529527411765ce2c0adbf2e7c8f0dad4e2ed864e7c4",
+    "src/clickbait/embeddings.py": "52492b072eee1223f47c8e4edc00324720c939a4e03729e445857e6f0dc8682d"
+  },
+  "python_version": "3.12.11",
+  "package_versions": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "pyarrow": "26.0.1"
+  },
+  "git_revision": "4e73dc009346008a109f5d17093dd9174d771fac",
+  "hardware": {
+    "platform": "macOS-27.2.1-arm64-arm-64bit",
+    "cpu": "Apple M3 Max",
+    "logical_cpus": 16,
+    "thread_limits": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4"
+    }
+  },
+  "model_paths": {
+    "A": "results/runs/poc/main/models/model_a.pkl",
+    "B": "results/runs/poc/main/models/model_b.pkl",
+    "C": "results/runs/poc/main/models/model_c.pkl"
+  }
+}

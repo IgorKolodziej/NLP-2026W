@@ -88,10 +88,10 @@ def main() -> None:
         "random_seed": seed,
         "best_C": best_c,
         "tuning": {
-            "protocol": "randomized search on validation macro-F1; refit on train only",
+            "protocol": "fixed grid on validation macro-F1; refit on train only",
             "validation_macro_f1_at_best_C": val_macro_f1,
-            "n_iter": int(cfg["randomized_search"]["n_iter"]),
-            "tie_break": "first sampled candidate",
+            "n_iter": len(candidates),
+            "tie_break": "smallest_C",
             "candidates": candidates,
         },
         "timing_seconds": {

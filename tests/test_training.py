@@ -28,7 +28,8 @@ class TrainingTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.cfg = load_config()
-        self.cfg["randomized_search"]["n_iter"] = 3
+        self.cfg["paths"]["results"] = "results"
+        self.cfg["grid_search"]["C"] = [0.01, 1.0, 100.0]
         self.cfg["embedding_model"] = "fixture-model"
         self.cfg["embeddings"]["revision"] = "fixture"
         rng = np.random.default_rng(42)
@@ -136,10 +137,8 @@ class TrainingTests(unittest.TestCase):
         self.assertEqual(scaler.n_samples_seen_, 40)
         np.testing.assert_allclose(scaler.mean_, reference_scaler.mean_, atol=1e-12)
         np.testing.assert_allclose(scaler.var_, reference_scaler.var_, atol=1e-12)
-        question_column = CUE_NAMES.index("n_question")
-        self.assertEqual(scaler.var_[question_column], 0)
-        self.assertEqual(scaler.scale_[question_column], 1)
-        self.assertTrue((val_cues[:, question_column] == 40).all())
+        punctuation_column = CUE_NAMES.index("attention_punctuation")
+        self.assertGreater(val_cues[:, punctuation_column].max(), train_cues[:, punctuation_column].max())
 
         x_train = np.hstack((self.vectors[self.train_positions], reference_scaler.transform(train_cues)))
         x_val = np.hstack((self.vectors[self.val_positions], reference_scaler.transform(val_cues)))

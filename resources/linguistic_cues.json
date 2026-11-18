@@ -1,0 +1,13 @@
+{
+  "initial_pointer": ["this", "that", "these", "those", "it", "they", "here"],
+  "indefinite_referent": ["someone", "somebody", "something", "anyone", "anybody", "anything", "everybody", "everything"],
+  "delayed_revelation": ["what happens next", "here's why", "here is why", "you won't believe", "wait until", "find out why", "the reason why", "turned out"],
+  "direct_address": ["you", "your", "yours", "yourself", "yourselves", "you've", "you'll"],
+  "action_invitation": ["see", "watch", "discover", "learn", "read", "look", "check"],
+  "question_start": ["who", "what", "when", "where", "why", "how", "which", "can", "could", "would", "will", "do", "does", "did", "is", "are"],
+  "surprise": ["shocking", "unbelievable", "insane", "stunning", "amazing", "bizarre", "unexpected", "astonishing", "incredible"],
+  "epistemic_distance": ["maybe", "might", "possibly", "apparently", "allegedly", "supposedly", "reportedly", "rumored", "rumoured"],
+  "narrative_reversal": ["but then", "until now", "turns out", "turned out", "except that", "what happened next", "little did"],
+  "payoff": ["ways", "reasons", "things", "tips", "facts", "signs", "secrets", "tricks", "steps"],
+  "referent": ["he", "she", "it", "they", "them", "his", "her", "their", "this", "that", "these", "those"]
+}

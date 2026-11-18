@@ -1,0 +1,31 @@
+{
+  "split": "temporal_main",
+  "partition": "test",
+  "n_test": 3580,
+  "positive_rate": 0.23184357541899442,
+  "figures": {
+    "monthly_prevalence": {
+      "png": "monthly_prevalence.png",
+      "svg": "monthly_prevalence.svg"
+    },
+    "teaser_length": {
+      "png": "teaser_length.png",
+      "svg": "teaser_length.svg"
+    },
+    "test_macro_f1": {
+      "png": "test_macro_f1.png",
+      "svg": "test_macro_f1.svg"
+    },
+    "confusion_matrices": {
+      "png": "confusion_matrices.png",
+      "svg": "confusion_matrices.svg"
+    },
+    "results_table": {
+      "png": "results_table.png",
+      "svg": "results_table.svg"
+    }
+  },
+  "results_table": "results_table.csv",
+  "examples": "example_predictions.csv",
+  "notes": "presentation_notes.txt"
+}

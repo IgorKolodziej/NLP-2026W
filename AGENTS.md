@@ -12,7 +12,7 @@ Read this at the start of every conversation. When plan, code, or reports confli
 
 **Research question:** Does a fixed set of **twelve linguistic cues** improve **macro-F₁** out-of-time vs. the **same** frozen `all-MiniLM-L6-v2` embeddings + logistic regression (paired **C − B**)?
 
-**Systems (shared splits, same LR family, `class_weight='balanced'` only):**
+**Primary systems (shared splits, same LR family, `class_weight='balanced'`):**
 
 | ID | Model |
 |----|--------|
@@ -20,13 +20,17 @@ Read this at the start of every conversation. When plan, code, or reports confli
 | B | Frozen MiniLM embeddings + LR |
 | C | B’s cached embeddings + twelve cues + LR |
 
-**Data:** Primary — Webis-Clickbait-17 (19,538 labelled posts; join labels by ID; **READY**). No publisher IDs → **temporal** held-out evaluation (not unseen-publisher claims). Deduplicate empties/repeated teasers; guard article overlap for leakage. Secondary — Webis-Clickbait-16 (**TO COLLECT** by ~20 Nov) for transfer diagnostic only.
+**Data:** Primary — Webis-Clickbait-17 (19,538 labelled posts; join labels by ID). No publisher IDs → **temporal** held-out evaluation (not unseen-publisher claims). Deduplicate empties/repeated teasers and audit article overlap. Secondary — publicly available Webis-Clickbait-16, evaluation only after local schema/overlap checks. The official Webis-17 challenge test is restricted and excluded.
 
 **Stack:** Python **3.11+** via **[uv](https://docs.astral.sh/uv/)** (`pyproject.toml`, committed `uv.lock`); scikit-learn, sentence-transformers, PyTorch, NumPy, matplotlib. Install with `uv sync`; run tools with `uv run …`. Do not add `requirements.txt`. CPU OK for linear models; optional GPU for one-time embedding cache.
 
-**Out of scope (per proposal):** spoiler generation, article-body models, multilingual work, browser extensions, live scraping.
+**Full-project secondary experiment:** matched teaser/title/96-word-lead A_ctx/B_ctx/C_ctx/D_ctx models and three relation cues; separate from primary A/B/C. Jeff and YouTube evaluation are optional. These are outside the immediate PoC.
 
-**Ground truth:** [`nlp_proposal_v2.tex`](nlp_proposal_v2.tex) — pipeline figure, evaluation protocol, weekly plan, workstreams, deliverables, data statement, limitations. Extend or deviate only with explicit justification in phase reports.
+**Out of scope:** spoiler generation, factual verification, multilingual work, browser extensions, live scraping.
+
+**Ground truth:** [`NLP_Proposal_v4-1.tex`](NLP_Proposal_v4-1.tex) — hypotheses, pipeline, exact twelve-cue specification, evaluation, deliverables and limitations. Earlier code/results follow the original proposal and remain historical artifacts. Extend or deviate only with explicit justification in phase reports.
+
+**Immediate delivery:** the presentation PoC on branch `feat/poc`, as scoped in [`PLAN.md`](PLAN.md): one temporal window, A/B/C, exact data checks, basic EDA and slide-ready artifacts. Use plain filenames without proposal-version suffixes. Full robustness/ablations/context/external studies remain later work. April was scored in an earlier pilot; disclose this prior exposure.
 
 **Implementation plan:** [`PLAN.md`](PLAN.md) — phased tasks, executors, human run steps. After finishing a PLAN task (merged work), **update the Progress checkboxes in `PLAN.md`** so team status stays accurate.
 
@@ -54,7 +58,7 @@ Read this at the start of every conversation. When plan, code, or reports confli
 | 2 Dec | Phase 2 — EDA + PoC, MR, revised report, rebuttals (20 pts) |
 | 13 Jan 2027 | Phase 3 — final report, presentation video, MR (30 pts) |
 
-Proposal weekly targets: see the weekly plan table in `nlp_proposal_v2.tex` (§ Work plan and deliverables).
+Proposal weekly targets: see the revised proposal's weekly table and the immediate PoC delivery scope in `PLAN.md`.
 
 ## Grading mindset (checkpoints and final)
 
@@ -82,7 +86,7 @@ SOTA table (≥15 works, dataset + split per number), dataset readiness labels, 
 
 Results with cross-method interpretation; **measurement procedures** for every number; **reproducibility** (seeds, versions, commands); rebuttal through meeting #13 Q&A; **≥3 runs** with spread or justified exception; **≥20** categorized errors; limitations with consequences; metric choice justified for **~24% positives** (accuracy alone insufficient); captions self-contained; code quality + current README.
 
-**Evaluation plan to preserve (from proposal):** Primary metric macro-F₁; temporal expanding-window runs + main train Dec–Feb / val Mar / test Apr; random grouped splits as diagnostic; randomized search on **C** via validation macro-F₁; calibration (Brier, reliability), AP, paired bootstrap for C−B, feature ablations, compute cost.
+**Evaluation plan:** Primary macro-F₁ and paired C−B; main train Dec–Feb / val Mar / test Apr; identical fixed regularization grid selected by validation macro-F₁ for A/B/C; train-only vocabulary/scalers/refit. The twelve cues form four three-feature families defined in Appendix A and `resources/linguistic_cues.json`. Full project adds other temporal/random runs, four family ablations, paired bootstrap, calibration, context analysis and compute cost. PoC exports point estimates and explicitly defers inferential claims.
 
 ## Agent behaviour in this repo
 

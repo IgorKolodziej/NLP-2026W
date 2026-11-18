@@ -1,389 +1,85 @@
-# NLP-2026W
+# Clickbait Without the Click
 
-The repository for open source solutions designed and developed within the NLP course conducted by Anna Wróblewska with Soveatin Kuntur, Filip Kucia, Arkadiusz Modzelewski, Michał Gromadzki @ Faculty of Mathematics and Information Sciences, Warsaw University of Technology.
+English clickbait detection under chronological evaluation. The presentation checkpoint compares word/character TF–IDF, frozen MiniLM embeddings, and the same embeddings plus twelve linguistic cues. All use balanced logistic regression with a shared validation-selected regularization grid.
 
-Project: *Clickbait Without the Click: Linguistic Cues under Temporal Shift*. Implementation tasks and milestones: [`PLAN.md`](PLAN.md).
+The working branch is `feat/poc`. See [PLAN.md](PLAN.md) for the smaller presentation checkpoint and remaining project work, and [presentation/PLAN.md](presentation/PLAN.md) for the ten-minute video storyboard.
 
-## Environment setup ([uv](https://docs.astral.sh/uv/))
+## Setup
 
-Dependencies are managed with **uv** (`pyproject.toml` + `uv.lock`), not `requirements.txt`. Python **3.11+** is recommended.
-
-### Install uv
-
-**macOS**
-
-- Official installer (works on Intel and Apple Silicon):
-
-  ```bash
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  ```
-
-  Then open a new terminal or run `source $HOME/.local/bin/env` (or follow the installer’s PATH hint).
-
-- Alternatively, with [Homebrew](https://brew.sh/): `brew install uv`
-
-**Windows**
-
-- PowerShell (official installer):
-
-  ```powershell
-  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-  ```
-
-  Restart the terminal so `uv` is on your `PATH` (installer adds `%USERPROFILE%\.local\bin` by default).
-
-- Alternatively, with [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/): `winget install --id=astral-sh.uv -e`
-
-Check the install:
-
-```bash
-uv --version
-```
-
-### Install project libraries
-
-From the repository root:
-
-```bash
-cd NLP-2026W
-uv sync
-```
-
-This creates a local `.venv`, resolves dependencies from `uv.lock`, and installs them into that environment.
-
-Run commands inside the project environment without activating the venv:
-
-```bash
-uv run python -c "print('ok')"
-```
-
-Optional: activate the venv manually — **macOS/Linux:** `source .venv/bin/activate` · **Windows (cmd):** `.venv\Scripts\activate.bat` · **Windows (PowerShell):** `.venv\Scripts\Activate.ps1`
-
-**Add or update a dependency** (team workflow):
-
-```bash
-uv add scikit-learn          # example: adds to pyproject.toml and refreshes uv.lock
-uv sync                      # after pulling someone else's lockfile changes
-```
-
-Pin versions for reports by citing the lockfile (`uv.lock`) and `uv pip freeze` or `uv export --format requirements-txt` when needed.
-
-Verify the project scaffold:
-
-```bash
-uv run python scripts/smoke_config.py
-```
-
-## Data: Webis-Clickbait-17
-
-Primary corpus for all experiments. **`data/raw/` is gitignored** — each clone must download the archive locally. Processed tables and split manifests in the repo were built from this release; re-run the scripts below to reproduce them bit-for-bit.
-
-### 1. Download
-
-- **Record:** [Zenodo 5530410 — Webis-Clickbait-17](https://zenodo.org/records/5530410) (CC BY 4.0)
-- **File:** `clickbait17-train-170630.zip` (~937 MB) — labelled training/validation JSONL, not the multi-part archive dumps
-
-Direct API link (same file):
-
-```text
-https://zenodo.org/api/records/5530410/files/clickbait17-train-170630.zip/content
-```
-
-**macOS / Linux** (from repository root):
-
-```bash
-mkdir -p data/raw
-curl -L -o data/raw/clickbait17-train-170630.zip \
-  "https://zenodo.org/api/records/5530410/files/clickbait17-train-170630.zip/content"
-```
-
-**Windows (PowerShell)** from repository root:
-
-```powershell
-New-Item -ItemType Directory -Force -Path data/raw
-curl.exe -L -o data/raw/clickbait17-train-170630.zip `
-  "https://zenodo.org/api/records/5530410/files/clickbait17-train-170630.zip/content"
-```
-
-### 2. Extract JSONL into `data/raw/`
-
-The zip contains a folder `clickbait17-validation-170630/` with large `media/` assets. For this project you only need the two JSONL files at **`data/raw/`** (paths in [`configs/experiment.yaml`](configs/experiment.yaml)):
-
-| Required path | Role |
-|---------------|------|
-| `data/raw/instances.jsonl` | `postText`, `postTimestamp`, `targetTitle`, … |
-| `data/raw/truth.jsonl` | `truthClass`, `truthJudgments`, … (join on `id`) |
-
-**macOS / Linux** — extract without pulling all media into the tree:
-
-```bash
-unzip -j -o data/raw/clickbait17-train-170630.zip \
-  "clickbait17-validation-170630/instances.jsonl" \
-  "clickbait17-validation-170630/truth.jsonl" \
-  -d data/raw
-```
-
-**Windows** — unzip the archive with Explorer or `tar -xf`, then copy `clickbait17-validation-170630\instances.jsonl` and `truth.jsonl` into `data\raw\`, or use the same `unzip` commands in Git Bash.
-
-Check:
-
-```bash
-test -f data/raw/instances.jsonl && test -f data/raw/truth.jsonl && echo "ok"
-```
-
-### 3. Build processed dataset and splits
-
-From the repository root (after `uv sync`):
-
-```bash
-uv run python scripts/build_dataset.py
-uv run python scripts/build_splits.py
-```
-
-**Outputs (used by later tasks):**
-
-| Path | Contents |
-|------|----------|
-| `data/processed/posts.parquet` | Cleaned rows (`post_id`, text, label, timestamps, …) |
-| `data/processed/dataset_stats.json` | Row counts after cleaning |
-| `splits/*.json` | Train/val/test ID lists (`temporal_main`, random grouped seeds, …) |
-
-Cleaning and leakage rules: [`docs/data.md`](docs/data.md).
-
-### Train system A (Task 4)
-
-After the dataset and splits exist:
-
-```bash
-uv run python scripts/train_system_a.py --split temporal_main
-```
-
-Writes `results/system_a_<split>.json` (macro-F₁, AP, Brier, confusion matrix; split name in file). Cue definitions: [`docs/cues.md`](docs/cues.md).
-
-Optional secondary corpus (Task 10 / EDA): Webis-Clickbait-16 under `data/raw/webis16/` when available.
-
-### Frozen MiniLM cache (Task 5)
-
-Install the locked environment and run a **64-post `temporal_main` training pilot** to download
-the pinned model before measuring the full run:
+Use Python 3.11+ and [uv](https://docs.astral.sh/uv/). Dependencies are pinned in `uv.lock`.
 
 ```bash
 uv sync --locked
-uv run --locked python scripts/cache_embeddings.py --device cpu --sample-size 64
+uv run --locked python scripts/smoke_config.py
 ```
 
-Without `--sample-size`, the script encodes **all processed posts**, including validation/test
-texts, using the fixed pretrained encoder. No labels or dataset-fitted statistics enter encoding.
-On Linux, measure the complete command with GNU time:
+## Data
+
+Download the public Webis-Clickbait-17 labelled training archive, not the restricted challenge test. Source: [Zenodo record 5530410](https://zenodo.org/records/5530410), `clickbait17-train-170630.zip`, CC BY 4.0. The archive is about 937 MB; extract only its two JSONL files. Raw data and caches are gitignored.
 
 ```bash
-mkdir -p results
-/usr/bin/time -v -o results/embedding_cache_time.txt \
-  uv run --locked python scripts/cache_embeddings.py --device cpu --local-files-only
+mkdir -p data/raw
+curl -fL --retry 2 -o data/raw/clickbait17-train-170630.zip \
+  https://zenodo.org/api/records/5530410/files/clickbait17-train-170630.zip/content
+unzip -j data/raw/clickbait17-train-170630.zip \
+  'clickbait17-validation-170630/instances.jsonl' \
+  'clickbait17-validation-170630/truth.jsonl' -d data/raw
+```
+
+The repository includes the processed pilot table and existing main split. The PoC independently rebuilds cleaning from raw inputs and rejects a processed table that differs. It records the 54 empty, 411 repeated-teaser and 391 repeated-title exclusions in an ID-only ledger. Final pilot size is 18,682, with 4,448 positive labels. Official `truthClass` is the target; annotation ratings support interpretation only.
+
+Cleaning details: [docs/data.md](docs/data.md). The current checkpoint checks exact teaser/title overlap and chronological months. Article titles are imperfect identity proxies, and the full near-duplicate audit remains future work. Publisher IDs are unavailable.
+
+## Frozen embedding cache
+
+```bash
+uv run --locked python scripts/cache_embeddings.py --device cpu
 uv run --locked python scripts/cache_embeddings.py --check
 ```
 
-`--local-files-only` excludes model downloads from this run. GNU time records total process
-wall time and peak **host RSS in KiB**, including imports, model loading, token-length auditing,
-encoding, verification, and writing. Separate phase timings are in `results/embedding_cache.json`.
-These measurements cover cache construction, not LR training or deployment latency. CUDA runs
-also record PyTorch peak allocated/reserved device bytes separately from host RSS.
+The first command downloads the pinned `sentence-transformers/all-MiniLM-L6-v2` revision, creates unit-normalized 384-dimensional vectors and records encoding metadata. It encodes text without labels or dataset-fitted statistics. To reuse the team cache, copy both `embeddings.npz` and `meta.json` into `cache/embeddings/`, then run `--check`. IDs, text fingerprints, encoder settings and archive checksums must agree. For a small training-only encoding check, use `--sample-size 64`; this does not replace the full cache.
 
-The [recorded CPU run](results/embedding_cache.json) covers all **18,682 processed Webis-17 posts**
-on an AMD Ryzen 7 5700U with 8 PyTorch threads and batch size 32. It took **55.34 s total wall time**,
-including **49.23 s encoding**, with **1,347,620 KiB peak host RSS** ([GNU time log](results/embedding_cache_time.txt)).
-These are single-run measurements with the model already downloaded. All six manifests are covered;
-the longest teaser uses 104 tokens including special tokens, so none reaches the 256-token limit.
+## Reproduce one PoC result
 
-The model revision and encoding settings are pinned in [`configs/experiment.yaml`](configs/experiment.yaml).
-The first run downloads the model into `cache/models/`. Encoding uses frozen float32 weights,
-the existing `post_text` without additional cleaning, a 256-token maximum, and unit-normalized
-384-dimensional sentence embeddings. Labels and article fields are not passed to the encoder.
+After setup, raw-data extraction and cache creation, run:
 
-Full-cache outputs under **`cache/embeddings/`** (gitignored):
+```bash
+uv run --locked python scripts/run_poc.py --output results/poc/local
+uv run --locked python scripts/run_poc.py --verify results/poc/local
+```
 
-- `embeddings.npz`: aligned string `post_ids`, `text_sha256`, and float32 `embeddings`.
-- `meta.json`: model revision, encoding settings, hardware, installed versions, code revision,
-  source/config/lockfile/archive checksums, split coverage, token-length audit, and verification results.
+The pinned presentation result lives in `results/poc/main/`; `local` is a fresh reproduction directory. Use another new name for additional runs; existing results are not overwritten. The runner uses `temporal_main`: December 2016–February 2017 training (11,184 posts), March validation (3,918), April test (3,580, including 830 positives). It selects `C` from `[0.01, 0.1, 1, 10, 100]` by validation macro-F₁, resolves ties with smallest `C`, refits on training only and uses the default 0.5 decision rule. Vocabulary/IDF and cue scaling are fitted on training rows only. Nonconvergence aborts the run.
 
-The script verifies finite float32 values, dimensions, unit norms, exact save/load equality, and
-five seeded direct re-encodings with batch size 1 (`atol=1e-6`, `rtol=1e-5`). A small summary is
-written to `results/embedding_cache.json`; retain it with the GNU time log for the report.
-Pilot runs stay in `cache/embeddings/pilot/` and never overwrite the full cache.
+Systems:
 
-`clickbait.embeddings.load_embeddings(directory, posts, cfg)` takes a table with `post_id` and
-`post_text`, returns vectors in that table's order, and checks the model/revision, sequence limit,
-normalization setting, dimensions, dtype, IDs, text fingerprints, and archive integrity. B and C
-must load the same archive. Package versions and batch size are recorded as provenance; loading
-saved arrays does not require matching the encoding machine or its inference batch size.
+- **A:** word 1–2 and character 3–5 TF–IDF + L2 logistic regression.
+- **B:** frozen MiniLM + the same LR family.
+- **C:** B's identical embedding coordinates + twelve train-standardized cues + LR.
 
-`--check` validates the existing artifact without loading MiniLM or downloading anything. It
-checks every current split manifest for covered IDs and nonempty, disjoint partitions. This is
-an ID-coverage check, not a new article-leakage audit. Split changes alone allow reuse of unchanged
-ID–text vectors; saved manifest hashes describe the original run. Check a pilot with
-`--check --sample-size 64`.
+Cue definitions and exact lexicons: [docs/cues.md](docs/cues.md). All twelve cues use teaser text only and form four families of three.
 
-To transfer the full cache, copy `embeddings.npz` and `meta.json` together into the recipient's
-`cache/embeddings/`, then run the documented `--check` command against the same processed dataset
-and configuration. Large artifacts remain outside git.
+Outputs include a data audit/ledger, pre-scoring protocol snapshot, all candidate validation scores, test metrics and ID-aligned predictions, measured timings/peak host RSS, and presentation charts/tables/examples. Large fitted pipelines live in documented gitignored storage under `results/runs/`. The verifier checks frozen inputs/models and recomputes predictions and metrics without fitting.
 
-Run the tests without downloading a model:
+Runtime and memory measurements describe the current process/hardware. Distinguish cache construction, model selection/training and test inference when citing cost. Shared-process peak RSS is not a separate per-model memory estimate. Run times can vary across machines.
+
+## Presentation
+
+The editable reveal.js deck and two-person script live in [presentation/](presentation/). Its README explains rendering, presenting and recording the ten-minute video. Main slides distinguish observed pilot results from future hypotheses. The script includes slide timings and the presenter handoff.
+
+The video covers the problem, revised SOTA, methodology, working PoC, preliminary findings and next steps. It supports the 25 November Q&A and 2 December assessed Phase 2 submission. Contribution hours, formal LLM declaration and full report/rebuttal requirements remain team submission responsibilities.
+
+## Tests
 
 ```bash
 uv run --locked python -m unittest discover -s tests -v
 ```
 
-### B/C feature construction (Task 6)
+Tests cover cue rules, cache alignment/compatibility, training-only transforms, the fixed selection grid, exact data auditing, frozen evaluation and presentation artifact alignment. They require no model download. The real-data PoC and verifier provide integration evidence beyond these fixtures.
 
-`clickbait.models.neural.load_neural_inputs(posts, cache_dir, cfg, system)` preserves the
-requested post order and loads cached embeddings as contiguous float64 arrays. B has 384
-embedding columns. C appends twelve **unscaled** cues in `CUE_NAMES` order, giving 396 columns.
+## Scope and interpretation
 
-For C, `build_cue_scaler()` creates a scikit-learn `ColumnTransformer` that passes through the
-embedding columns and applies `StandardScaler` only to the cue columns. Fit it on training
-inputs with `fit_transform`, then use that same object's `transform` on validation/test inputs.
-Constant training cues are retained. The embedding values are identical in B and C.
-Cue matching semantics are documented in [`docs/cues.md`](docs/cues.md).
+This checkpoint runs one main chronological window. A positive C−B point estimate does not establish significance, robustness across months or publisher generalization. April had an earlier pilot evaluation, which must be disclosed. No current model predicts factual truth or observed click rates.
 
-Check feature construction on the real training/validation partitions without fitting LR or
-reading test labels:
+Other temporal windows, grouped-random diagnostics, four family ablations, paired uncertainty, detailed calibration/error analysis, matched teaser–article context models and external Webis-16 evaluation remain later work. Jeff and YouTube are optional. Historical results and snapshots under `results/` retain their original definitions; reproducing those hash-frozen experiments requires their recorded historical code/configuration, rather than the current cue extractor.
 
-```bash
-uv run --locked python scripts/check_neural_features.py --split temporal_main
-```
-
-Verified shapes for `temporal_main`: training B `(11184, 384)` and C `(11184, 396)`;
-validation B `(3918, 384)` and C `(3918, 396)`. Checks cover finite float64 values,
-embedding equality, and standardized training cues.
-
-### B/C training and validation (Task 6)
-
-With the full embedding cache available, run B and C on CPU:
-
-```bash
-uv run --locked python scripts/train_neural.py --system B --split temporal_main
-uv run --locked python scripts/train_neural.py --system C --split temporal_main
-```
-
-The runner uses the manifest's training and validation rows only: December–February for
-fitting and March for selecting the LR regularization strength. Both systems draw the same 25
-log-uniform `C` values in `[0.01, 100]` as A, using seed 42, and select the highest validation
-macro-F₁. Exact ties keep the first sampled candidate. The selected classifier is refitted
-on training data only, with `class_weight='balanced'` and the default 0.5 decision threshold.
-
-For C, the cue scaler is fitted once on training rows. Every candidate and the final refit
-use these training statistics, while the 384 embedding columns pass through unchanged.
-The twelve cues and their matching rules remain as documented in [`docs/cues.md`](docs/cues.md).
-
-B outputs:
-
-- `results/system_b_temporal_main_validation.json`: validation metrics, all candidate scores,
-  convergence status, iteration counts, fit times, configuration, versions and input hashes.
-- `results/runs/b_temporal_main_validation/model.pkl`: fitted LR classifier, taking the 384
-  cached embedding columns as float64. Reload with `pickle.load` in the locked environment.
-- `results/runs/b_temporal_main_validation/validation_predictions.parquet`: manifest-ordered
-  `post_id`, `partition`, `y_true`, `y_pred` and `p_clickbait` columns.
-
-C uses the same filenames under `results/runs/c_temporal_main_validation/`, with its summary
-in `results/system_c_temporal_main_validation.json`. Its `model.pkl` is a fitted scikit-learn
-`Pipeline` containing `preprocessor` (embedding passthrough and cue scaler) and `classifier`
-(LR). Pass the 396 **unscaled** input columns from `load_neural_inputs(..., system="C")` to
-`predict` or `predict_proba`; the saved pipeline applies its training statistics automatically.
-The summary records `cue_names` in input order. Both systems record feature-loading,
-cue-scaling, tuning, final-fit and prediction times separately.
-
-Model and prediction files are gitignored. Each invocation replaces these split-specific
-outputs. A nonconverged candidate aborts the search and writes its diagnostic history to
-`tuning_failure.json` in the system's run directory; no partial winner is selected
-or new success artifacts written. Resolve the warning and rerun the complete search. Any
-increase of `logistic_regression.max_iter` belongs in the shared configuration for A/B/C.
-The final refit also fails on a convergence warning.
-
-Measure the complete validation run, including loading and artifact export, with:
-
-```bash
-/usr/bin/time -v -o results/system_b_temporal_main_validation_time.txt \
-  uv run --locked python scripts/train_neural.py --system B --split temporal_main
-/usr/bin/time -v -o results/system_c_temporal_main_validation_time.txt \
-  uv run --locked python scripts/train_neural.py --system C --split temporal_main
-```
-
-Recorded CPU runs: 11,184 training and 3,918 validation posts, on an AMD Ryzen 7 5700U
-with 16 logical CPUs. Wall time and peak RSS cover each full search, refit and export
-using the existing cache; embedding generation is measured separately in Task 5.
-
-| System (run summary) | Split/partition | Macro-F₁ | Selected `C` | Wall time (GNU time log) | Peak RSS |
-|---|---|---:|---:|---:|---:|
-| [B](results/system_b_temporal_main_validation.json) | `temporal_main/val` | 0.716718 | 19.545485 | [15.88 s](results/system_b_temporal_main_validation_time.txt) | 357,856 KiB (349.5 MiB) |
-| [C](results/system_c_temporal_main_validation.json) | `temporal_main/val` | 0.745811 | 0.569526 | [58.97 s](results/system_c_temporal_main_validation_time.txt) | 406,284 KiB (396.8 MiB) |
-
-All 25 candidates converged for each system: 6–57 iterations for B and 15–209 for C;
-the final refits took 41 and 89 iterations respectively. Reloading each model reproduces
-its exported predictions and probabilities exactly. C's saved scaler matches the training
-cue statistics, and the B/C input hashes, validation IDs and tuning settings agree.
-The run summaries contain full candidate histories and secondary metrics.
-
-These are model-selection results on March validation.
-
-### Frozen April B/C comparison (Task 6)
-
-The [frozen protocol](results/frozen/temporal_main/protocol.json) fixes the existing
-`temporal_main` manifest, input hashes, cue definitions, package versions and selected
-regularization strengths. The two fitted models are committed alongside it (about 10 KB
-in total), copied unchanged from the verified validation runs. Later training runs write
-to separate paths and do not replace these snapshots.
-
-Both classifiers were fitted on December–February only, with `C` selected on March. The
-test evaluator loads the frozen models, uses their default 0.5 decision rule and original
-probabilities, and performs no fitting, tuning or calibration. It checks model, dataset,
-manifest, embedding, feature-code and lexicon hashes plus package versions before scoring.
-Use the shared Task 5 cache matching the archive hash in the protocol and the recorded
-environment (Python 3.14.10; dependencies pinned in `uv.lock`).
-
-After the setup and cache steps above, reproduce the comparison on CPU with:
-
-```bash
-uv sync --locked
-UV_NO_SYNC=1 /usr/bin/time -v -o results/bc_temporal_main_test_time.txt \
-  uv run --locked python scripts/evaluate_neural.py
-```
-
-Outputs:
-
-- `results/bc_temporal_main_test.json`: B/C test metrics, the paired macro-F₁ difference
-  `C − B`, prediction timings, protocol/prediction hashes and execution provenance.
-- `results/bc_temporal_main_test_predictions.parquet`: one row per test post in manifest
-  order, with `post_id`, `split`, `partition`, `y_true`, `y_pred_B`, `p_clickbait_B`,
-  `y_pred_C` and `p_clickbait_C`. Class 1 is clickbait; confusion matrices use `[0, 1]`
-  for both gold-label rows and prediction columns.
-- `results/bc_temporal_main_test_time.txt`: GNU time measurement of the combined evaluator,
-  including startup, input verification, feature loading, scoring and artifact export.
-  Training and embedding generation are measured separately above.
-
-Recorded results on 3,580 April posts (830 clickbait):
-
-| System | Split/partition | Macro-F₁ | Average precision | Brier score |
-|---|---|---:|---:|---:|
-| B | `temporal_main/test` | 0.710541 | 0.651259 | 0.160020 |
-| C | `temporal_main/test` | 0.737422 | 0.688655 | 0.148493 |
-
-The paired `temporal_main/test` macro-F₁ difference is **C−B = +0.026881**.
-The [summary](results/bc_temporal_main_test.json) contains per-class metrics and confusion
-matrices; the [paired predictions](results/bc_temporal_main_test_predictions.parquet) are
-committed for subsequent analysis. Independent calculations using the frozen LR coefficients
-and scaler statistics reproduce every prediction and probability exactly; all metrics were
-recomputed from these rows, and the frozen model and input hashes remain unchanged.
-
-The [GNU time log](results/bc_temporal_main_test_time.txt) records **1.80 s** wall time and
-**309,860 KiB** peak RSS (302.6 MiB) for the combined evaluator on an AMD Ryzen 7 5700U
-with 16 logical CPUs. This was a single run with installed locked dependencies
-(`UV_NO_SYNC=1`) and a temporary uv cache; dependency installation is outside the measurement.
-
-The freeze audit found zero cross-partition overlap in IDs, normalized teasers and
-normalized title groups, with the expected calendar months. Article titles remain a
-proxy for article identity; Adam's leakage-policy review remains pending in `PLAN.md`.
-April labels were excluded from B/C fitting and selection; A's April metrics were already
-available before this freeze. The B/C comparison is a point estimate; paired bootstrap,
-additional splits, ablations and error analysis belong to Tasks 8–9.
-
-Further model and experiment reproduction steps will be added in [`PLAN.md`](PLAN.md) Task 10.
+Course repository: [grant-TraDA/NLP-2026W](https://github.com/grant-TraDA/NLP-2026W), GNU GPL v3. Team: Igor Kołodziej, Hubert Kowalski, Adam Kaniasty and Mateusz Iwaniuk. Supervisor: Anna Wróblewska.
